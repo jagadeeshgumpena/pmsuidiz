@@ -44,7 +44,7 @@ import lombok.Data;
  
   private Date createdAt;
 	private Date updatedAt;
-  
+
   
   }
  

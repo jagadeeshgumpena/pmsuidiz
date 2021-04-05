@@ -8,6 +8,8 @@ import java.util.stream.Stream;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
+import com.itextpdf.kernel.pdf.PdfDocument;
+import com.itextpdf.kernel.pdf.PdfWriter;
 import com.itextpdf.text.BaseColor;
 import com.itextpdf.text.Chunk;
 import com.itextpdf.text.Document;
@@ -19,7 +21,9 @@ import com.itextpdf.text.Paragraph;
 import com.itextpdf.text.Phrase;
 import com.itextpdf.text.pdf.PdfPCell;
 import com.itextpdf.text.pdf.PdfPTable;
-import com.itextpdf.text.pdf.PdfWriter;
+import com.itextpdf.kernel.pdf.PdfDocument; 
+
+
 import com.dizitiveit.pms.model.InvoiceItems;
 
 public class PdfGenerator {
@@ -28,9 +32,18 @@ public class PdfGenerator {
 	  
 	  public static ByteArrayInputStream invoicePDFReport(InvoiceItems invoiceItems) {
 		  
-		       
+		// Creating a Document        
+		
+		/*
+		 * Document document = new Document();
+		 * 
+		 * String dest = "C:\\Users\\user\\Desktop\\CLOUD COMPUTING\\invoice.pdf";
+		 * PdfWriter writer = new PdfWriter(dest); PdfDocument pdf = new
+		 * PdfDocument(writer);
+		 */
 	      
-	    Document document = new Document();
+	      Document document = new Document();
+	      
 	        ByteArrayOutputStream out = new ByteArrayOutputStream();
 	        Font headFont = FontFactory.getFont(FontFactory.HELVETICA_BOLD);
 	        Font headFont2 = new Font(Font.FontFamily.TIMES_ROMAN, 18,
@@ -192,7 +205,7 @@ public class PdfGenerator {
 	             
 	            
 	                
-		            PdfWriter.getInstance(document, out);
+		           // PdfWriter.getInstance(document, out);
 		            document.open();
 		            document.add(table);
 		            document.add(table1);

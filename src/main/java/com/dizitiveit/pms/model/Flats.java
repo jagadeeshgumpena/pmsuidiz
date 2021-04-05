@@ -22,7 +22,7 @@ import javax.persistence.Id;
 	@Id	
   @GeneratedValue(strategy = GenerationType.AUTO)
   private long flatId; 
-  private int flatNo; 
+  private String flatNo; 
   private String block; 
   private String tower; 
   private int floor; 

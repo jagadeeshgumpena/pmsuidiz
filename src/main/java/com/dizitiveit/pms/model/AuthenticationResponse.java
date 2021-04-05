@@ -9,7 +9,7 @@ public class AuthenticationResponse implements Serializable{
 	private final String role;
 	private final String firstName;
 	private final String lastName;
-	private final int flatNo;
+	private final String flatNo;
   
 	  
 	  public String getJwt() { 
@@ -35,16 +35,14 @@ public class AuthenticationResponse implements Serializable{
 		return firstName;
 	}
 
-
-
-
-	public int getFlatNo() {
+	public String getFlatNo() {
 		return flatNo;
 	}
 
 
 
-	public AuthenticationResponse(String jwt, String role, String firstName, String lastName, int flatNo) {
+
+	public AuthenticationResponse(String jwt, String role, String firstName, String lastName, String flatNo) {
 		super();
 		this.jwt = jwt;
 		this.role = role;

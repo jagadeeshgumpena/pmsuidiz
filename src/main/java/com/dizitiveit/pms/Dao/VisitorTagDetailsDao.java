@@ -36,8 +36,8 @@ public interface VisitorTagDetailsDao extends JpaRepository<VisitorTagDetails,Lo
 	@Query(value="select * from visitor_tag_number where status=?1 and flats_flat_id=?2 order by visitor_id asc",nativeQuery = true)
 	List<VisitorTagDetails> findAllOutVisitors(boolean status,long flatId);
 	
-	@Query(value="select * from visitor_tag_number where type=?1 and status=?2 order by visitor_id asc",nativeQuery = true)
-	List<VisitorTagDetails> getVisitorDetailsBytype(String type,boolean status);
+	@Query(value="select * from visitor_tag_number where type=?1  order by visitor_id asc",nativeQuery = true)
+	List<VisitorTagDetails> getVisitorDetailsBytype(String type);
 	
 	@Query(value="select * from visitor_tag_number where flats_flat_id=?1 and status=?2 order by visitor_id asc",nativeQuery = true)
 	List<VisitorTagDetails> getVisitorDetailsByflatNo(long flatId,boolean status);

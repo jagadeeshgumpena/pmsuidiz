@@ -93,11 +93,19 @@ public class VisitorTagDetailsController {
 	 private OtpSenderService otpService;
 	
 	@PostMapping(value="/saveVisitorDetails/{flatNo}")
-	public ResponseEntity<?>  saveVisitorDetails(@PathVariable int flatNo,@RequestBody VisitorTagDetails visitorDetails,@RequestParam(name = "slotNo",required = false) String slotNo)
+	public ResponseEntity<?>  saveVisitorDetails(@PathVariable String flatNo,@RequestBody VisitorTagDetails visitorDetails,@RequestParam(name = "slotNo",required = false) String slotNo)
 	{
 		Users users = userDetailsService.getAuthUser();
 		{
 		Flats flats = flatsDao.findByflatNo(flatNo);
+		 FlatOwners flatOwnersvisitor = flatOwnersDao.findByownersActive(flats.getFlatId(),true);
+		 if(flatOwnersvisitor.getFlatResidencies()==null) {
+		 
+			 visitorDetails.setResidentType("Owner");
+		 }
+		 else {
+			 visitorDetails.setResidentType("Tenant");
+		 }
 		if(slotNo=="") {
 			System.out.println("in unplanned");
 		visitorDetails.setFlats(flats);
@@ -178,6 +186,7 @@ public class VisitorTagDetailsController {
 		Users users = userDetailsService.getAuthUser();
 		System.out.println(users.toString());
 		System.out.println(visitorTagDetails.toString());
+		
 		VisitorTagDetails visitorTagDetailsUpdate = visitorTagDetailsDao.findByVisitorId(visitorId);
 		if(visitorTagDetails!=null) 
 		{
@@ -261,12 +270,20 @@ public class VisitorTagDetailsController {
 	}
 	
 	@PostMapping("/savePlannedVisitors/{flatNo}")
-	public ResponseEntity<?> savePlannedVisitors(@PathVariable int flatNo,@RequestBody VisitorTagDetails visitorDetails){
+	public ResponseEntity<?> savePlannedVisitors(@PathVariable String flatNo,@RequestBody VisitorTagDetails visitorDetails){
 		Users users = userDetailsService.getAuthUser();
 		System.out.println(users.toString());
 		if(users.getRoles().equalsIgnoreCase("ROLE_OWNER")||users.getRoles().equalsIgnoreCase("ROLE_TENANT")) 
 		{
 		Flats flats = flatsDao.findByflatNo(flatNo);
+		FlatOwners flatOwnersvisitor = flatOwnersDao.findByownersActive(flats.getFlatId(),true);
+		 if(flatOwnersvisitor.getFlatResidencies()==null) {
+		 
+			 visitorDetails.setResidentType("Owner");
+		 }
+		 else {
+			 visitorDetails.setResidentType("Tenant");
+		 }
 		if(flats!=null)
 		{
 		visitorDetails.setFlats(flats);
@@ -309,7 +326,8 @@ public class VisitorTagDetailsController {
 				 DateFormat formatter = new SimpleDateFormat("dd MMMM yyyy");  
 				    String strDate = formatter.format(visitorDetails.getExpectedInTime());  
 				    System.out.println("Date Format with dd MMMM yyyy : "+strDate);  
-				 String message = flatResidencies.getFirstname()+" "+flatResidencies.getLastName()+" "+"has invited you to Block"+" "+flatResidencies.getFlats().getBlock()+" "+flatResidencies.getFlats().getTower()+" "+flatResidencies.getFlats().getFlatNo()+" "+"on"+" "+strDate+" "+"using PMS.Please Use"+" "+visitorDetails.getVisitorId()+" "+"as entry code at the gate"; 
+				 String message = flatResidencies.getFirstname()+" "+flatResidencies.getLastName()+" "+"has invited you to Block"+" "+flatResidencies.getFlats().getBlock()+" "+flatResidencies.getFlats().getTower()+" "+flatResidencies.getFlats().getFlatNo()+" "+"on"+" "+strDate+" "+"using PMS.Please Use"+" "+visitorDetails.getVisitorId()+" "+"as entry code at the gate";
+				 System.out.println(visitorDetails.getPhoneNumber());
 				 otpService.sendSms(visitorDetails.getPhoneNumber(), message);
 			 }
 		Responses responses = responsesDao.findById(22);
@@ -444,7 +462,7 @@ public class VisitorTagDetailsController {
 	
 
 	@GetMapping("/listOfOutVisitorDetails/{flatNo}")
-	public ResponseEntity<?> listOfOutVisitorDetails(@PathVariable int flatNo){
+	public ResponseEntity<?> listOfOutVisitorDetails(@PathVariable String flatNo){
 		 List<VisitorTagDetailsPojo> listVisitorTagDetailsPojo = new ArrayList();
 			Flats flats = flatsDao.findByflatNo(flatNo);
 		List<VisitorTagDetails> listVisitorTagDetails = visitorTagDetailsDao.findAllOutVisitors(false, flats.getFlatId());
@@ -510,6 +528,10 @@ public class VisitorTagDetailsController {
 		long difference_In_Time  = visitorDetailsout.getOutTime().getTime() - visitorDetailsout.getInTime().getTime();
 		
 		 long difference_In_Hours   = TimeUnit.MILLISECONDS.toHours(difference_In_Time) % 24; 
+		 if(difference_In_Hours<1)
+		 {
+			 difference_In_Hours=1;
+		 }
 		 
 		 double cost= difference_In_Hours* visitorDetailsout.getVisitorParkingSlots().getSlotCostPerHour();
 		 System.out.println(cost);
@@ -592,7 +614,7 @@ public class VisitorTagDetailsController {
 	}
 	
 	@GetMapping(value="getVisitorDetailsByflatNo/{flatNo}")
-	public ResponseEntity<?> getVisitorDetailsByflatNo(@PathVariable int flatNo){
+	public ResponseEntity<?> getVisitorDetailsByflatNo(@PathVariable String flatNo){
 		Flats flats = flatsDao.findByflatNo(flatNo);		
 		List<VisitorTagDetails>listVisitorTagDetails= visitorTagDetailsDao.getVisitorDetailsByflatNo("PENDING",flats.getFlatId(),"Unplanned Visitor");
 		// HashMap<String, List<VisitorTagDetails>> response = new HashMap<String,List<VisitorTagDetails>>();
@@ -607,6 +629,7 @@ public class VisitorTagDetailsController {
 			 visitorDetailsPojo.setModel(visitor.getModel());
 			 visitorDetailsPojo.setPhoneNumber(visitor.getPhoneNumber());
 			 visitorDetailsPojo.setVehicleType(visitor.getVehicleType());
+			 visitorDetailsPojo.setResidentType(visitor.getResidentType());
 			 DateFormat dfExpectedIn = new SimpleDateFormat("dd-MM-yy'T'HH:mm:ss");
 				if(visitor.getExpectedInTime()!=null) {
 					visitorDetailsPojo.setExpectedInTime(dfExpectedIn.format(visitor.getExpectedInTime()));
@@ -640,7 +663,7 @@ public class VisitorTagDetailsController {
 	}
 	
      @GetMapping(value="getAllVisitorsByflatNo/{flatNo}")
-     public ResponseEntity<?> getAllVisitorsByflatNo(@PathVariable int flatNo){
+     public ResponseEntity<?> getAllVisitorsByflatNo(@PathVariable String flatNo){
     	 Flats flats = flatsDao.findByflatNo(flatNo);
     	 List<VisitorTagDetails>listVisitorTagDetails= visitorTagDetailsDao.findByflats(flats);
     	 List<VisitorTagDetailsPojo>listVisitorTagDetailsPojo= new ArrayList();
@@ -678,6 +701,7 @@ public class VisitorTagDetailsController {
  				 visitorDetailsPojo.setType(visitor.getType());
  				 visitorDetailsPojo.setVehicleNumber(visitor.getVehicleNumber());
  				 visitorDetailsPojo.setVisitorStatus(visitor.getVisitorStatus());
+ 				visitorDetailsPojo.setResidentType(visitor.getResidentType());
  				 listVisitorTagDetailsPojo.add(visitorDetailsPojo);
  		}
  		HashMap<String, List<VisitorTagDetailsPojo>> response = new HashMap<String,List<VisitorTagDetailsPojo>>();
@@ -685,13 +709,13 @@ public class VisitorTagDetailsController {
               return ResponseEntity.ok(response);
      }
      
-     @GetMapping(value="/getVisitorsByType/{type}")
-     public ResponseEntity<?>  getVisitorsByType(@PathVariable String type){
-    	 List<VisitorTagDetails>listVisitorTagDetails= visitorTagDetailsDao.getVisitorDetailsBytype(type,true);
-    	 HashMap<String, List<VisitorTagDetails>> response = new HashMap<String,List<VisitorTagDetails>>();
-    	 response.put("listVisitorTagDetails",listVisitorTagDetails);
- 		return ResponseEntity.ok(response);
-     }
+     //@GetMapping(value="/getVisitorsByType/{type}")
+    // public ResponseEntity<?>  getVisitorsByType(@PathVariable String type){
+    	// List<VisitorTagDetails>listVisitorTagDetails= visitorTagDetailsDao.getVisitorDetailsBytype(type,true);
+    	// HashMap<String, List<VisitorTagDetails>> response = new HashMap<String,List<VisitorTagDetails>>();
+    	 //response.put("listVisitorTagDetails",listVisitorTagDetails);
+ 		//return ResponseEntity.ok(response);
+     //}
      
      @GetMapping("/getVisitorDetailsByVisitorId/{visitorId}")
      public ResponseEntity<?> getVisitorDetailsByVisitorId(@PathVariable long visitorId){
@@ -793,7 +817,7 @@ public class VisitorTagDetailsController {
     	 List<VisitorTagDetailsPojo> listVisitorTagDetailsPojo = new ArrayList();
      	 if(type.equalsIgnoreCase("Visitors"))
  		{
-    		 List<VisitorTagDetails>listVisitorTagDetails= visitorTagDetailsDao.getVisitorDetailsBytype(value,true);
+    		 List<VisitorTagDetails>listVisitorTagDetails= visitorTagDetailsDao.getVisitorDetailsBytype(value);
     		 for(VisitorTagDetails visitor : listVisitorTagDetails) {
     			 VisitorTagDetailsPojo visitorDetailsPojo = new VisitorTagDetailsPojo();
     			 visitorDetailsPojo.setVisitorId(visitor.getVisitorId());
@@ -840,8 +864,8 @@ public class VisitorTagDetailsController {
      		return ResponseEntity.ok(response);
  		}
     	 else if(type.equalsIgnoreCase("flatNo")) {
-    		 int flatNo=Integer.parseInt(value);  
-    	     Flats flats = flatsDao.findByflatNo(flatNo);
+    		
+    	     Flats flats = flatsDao.findByflatNo(value);
         	 List<VisitorTagDetails>listVisitorTagDetails= visitorTagDetailsDao.getVisitorDetailsByflatNo(flats.getFlatId(),true);
         	 
         	 for(VisitorTagDetails visitor : listVisitorTagDetails) {
@@ -881,6 +905,7 @@ public class VisitorTagDetailsController {
     			 visitorDetailsPojo.setType(visitor.getType());
     			 visitorDetailsPojo.setVehicleNumber(visitor.getVehicleNumber());
     			 visitorDetailsPojo.setVisitorStatus(visitor.getVisitorStatus());
+    			 visitorDetailsPojo.setResidentType(visitor.getResidentType());
     			 listVisitorTagDetailsPojo.add(visitorDetailsPojo);
     		 }
     		 
@@ -895,8 +920,11 @@ public class VisitorTagDetailsController {
     		 Date date;
     		 try {
 				date = new SimpleDateFormat("yyyy-MM-dd").parse(value);
-				System.out.println(date);
-				List<VisitorTagDetails> listVisitorTagDetails = visitorTagDetailsDao.findByVisitorDate(date,true);
+				Date dateTomorrow=DateUtils.addHours(date,23);
+				dateTomorrow=DateUtils.addMinutes(dateTomorrow,59);
+				   dateTomorrow=DateUtils.addSeconds(dateTomorrow, 59);
+				System.out.println(dateTomorrow);
+				List<VisitorTagDetails> listVisitorTagDetails = visitorTagDetailsDao.findByVisitorDate(dateTomorrow,true);
 				for(VisitorTagDetails visitor : listVisitorTagDetails) {
 	    			 VisitorTagDetailsPojo visitorDetailsPojo = new VisitorTagDetailsPojo();
 	    			 visitorDetailsPojo.setVisitorId(visitor.getVisitorId());
@@ -997,7 +1025,7 @@ public class VisitorTagDetailsController {
      }
    
      @PostMapping("/saveDailyVisitors/{flatNo}/{visitingDays}/{duration}")
- 	public ResponseEntity<?> saveDailyVisitors(@PathVariable int flatNo,@RequestBody VisitorTagDetails visitorDetails,@PathVariable String visitingDays,@PathVariable String duration )
+ 	public ResponseEntity<?> saveDailyVisitors(@PathVariable String flatNo,@RequestBody VisitorTagDetails visitorDetails,@PathVariable String visitingDays,@PathVariable String duration )
      {
     	 Users users = userDetailsService.getAuthUser();
     	 if(users.getRoles().equalsIgnoreCase("ROLE_OWNER")||users.getRoles().equalsIgnoreCase("ROLE_TENANT")) 

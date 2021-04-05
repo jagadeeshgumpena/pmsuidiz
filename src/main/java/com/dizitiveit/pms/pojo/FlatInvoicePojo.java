@@ -21,6 +21,6 @@ public class FlatInvoicePojo {
 	  private double salary;
 	  private double generator;
 	  private String createdAt;
-	  private int flatNo;
+	  private String flatNo;
 	   
 }

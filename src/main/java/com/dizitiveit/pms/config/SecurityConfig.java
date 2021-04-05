@@ -62,7 +62,7 @@ import com.google.common.collect.ImmutableList;
   .addHeaderWriter(new StaticHeadersWriter("Access-Control-Allow-Origin", "*")) 
   .and()
   .authorizeRequests() 
-  .antMatchers("/user/**","/success","/cancel/**","/pay","/pay/success","/pay/cancel") 
+  .antMatchers("/user/**","/success","/cancel/**","/pay","/pay/success","/pay/cancel","/pdf/**") 
   .permitAll() 
   .anyRequest() 
   .authenticated()

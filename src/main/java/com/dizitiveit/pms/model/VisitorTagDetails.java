@@ -49,4 +49,5 @@ public class VisitorTagDetails {
 	 */
 	@ManyToOne
 	private VisitorParkingSlots visitorParkingSlots;
+	private String residentType;
 }

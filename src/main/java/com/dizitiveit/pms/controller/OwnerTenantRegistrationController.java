@@ -19,6 +19,7 @@ import org.springframework.web.bind.annotation.RequestMapping;
 import org.springframework.web.bind.annotation.RequestMethod;
 import org.springframework.web.bind.annotation.RestController;
 
+import com.dizitiveit.pms.Dao.AdditionalParkingSlotsDao;
 import com.dizitiveit.pms.Dao.BuildingSecurityDao;
 import com.dizitiveit.pms.Dao.FlatDetailsDao;
 import com.dizitiveit.pms.Dao.FlatOwnersDao;
@@ -27,6 +28,7 @@ import com.dizitiveit.pms.Dao.FlatsDao;
 import com.dizitiveit.pms.Dao.ResponsesDao;
 import com.dizitiveit.pms.Dao.UsersDao;
 import com.dizitiveit.pms.Dao.VehicleDetailsDao;
+import com.dizitiveit.pms.model.AdditionalParkingSlots;
 import com.dizitiveit.pms.model.BuildingSecurity;
 import com.dizitiveit.pms.model.FlatDetails;
 import com.dizitiveit.pms.model.FlatOwners;
@@ -77,10 +79,13 @@ public class OwnerTenantRegistrationController {
    
    @Autowired
 	 private OtpSenderService otpService;
+   
+   @Autowired
+   private AdditionalParkingSlotsDao additionalParkingSlotsDao;
 
 	@Transactional
 	@RequestMapping(value = "/ownerRegistration/{flatNo}/{type}", method = RequestMethod.POST)
-	public ResponseEntity<?> signUp(@RequestBody FlatOwners flatOwners,@PathVariable int flatNo,@PathVariable String type) {
+	public ResponseEntity<?> signUp(@RequestBody FlatOwners flatOwners,@PathVariable String flatNo,@PathVariable String type) {
 		Flats flats = flatsDao.findByflatNo(flatNo);
 		
 		if(flats!=null)
@@ -220,7 +225,7 @@ public class OwnerTenantRegistrationController {
 			
 	
   		@PostMapping("/updateOwnerDetails/{flatNo}")
-  		 public ResponseEntity<?> updateOwnerDetails(@PathVariable int flatNo,@RequestBody FlatOwners flatOwners){
+  		 public ResponseEntity<?> updateOwnerDetails(@PathVariable String flatNo,@RequestBody FlatOwners flatOwners){
   	
   			Flats flats = flatsDao.findByflatNo(flatNo);
   			FlatOwners flatOwnersUpdate = flatOwnersDao.findByownersActiveAndType(flats.getFlatId(), true, "Management");
@@ -247,7 +252,7 @@ public class OwnerTenantRegistrationController {
 		
 	@Transactional
 	@RequestMapping(value = "/tenantRegistartion/{flatNo}", method = RequestMethod.POST)
-	 public ResponseEntity<?> tenentRegistartion(@PathVariable int flatNo,@RequestBody FlatResidencies flatResidencies){
+	 public ResponseEntity<?> tenentRegistartion(@PathVariable String flatNo,@RequestBody FlatResidencies flatResidencies){
 		System.out.println(flatResidencies.toString());
 		Flats flats = flatsDao.findByflatNo(flatNo);
 		List<VehicleDetails> vehicleDetails = vehicleDetailsDao.findByflats(flats.getFlatId());
@@ -451,6 +456,7 @@ public class OwnerTenantRegistrationController {
 				  flatDetailsPojo.setC2ParkingSlot(flatDetails.getC2ParkingSlot());
 				  resident.setFlatDetails(flatDetailsPojo);
 			  }
+			  
 				  }
 			  }
 			  if(flatOwners!=null)
@@ -615,6 +621,13 @@ public class OwnerTenantRegistrationController {
 			 managementOwner.setOwnerActive(true);
 			 managementOwner.setType("Management");
 			 flatOwnersDao.save(managementOwner);
+			 List<AdditionalParkingSlots> additionalParkingSlots = additionalParkingSlotsDao.findByFlats(flatOwners.getFlats());
+			 for(AdditionalParkingSlots v:additionalParkingSlots) {
+				 v.setSlotOccupied(false);
+				 v.setFlats(null);
+				 additionalParkingSlotsDao.save(v);
+			 }
+			 
 			 Responses responses = responsesDao.findById(34);
 				System.out.println("responseId" + responses.getResponsesId());
 				System.out.println("resName" + responses.getResName());
@@ -633,6 +646,12 @@ public class OwnerTenantRegistrationController {
 			FlatOwners flatOwners = flatOwnersDao.findByFlatResidencies(flatResidencies);
 			flatOwners.setFlatResidencies(null);
 			flatOwnersDao.save(flatOwners);
+			List<AdditionalParkingSlots> additionalParkingSlots = additionalParkingSlotsDao.findByFlats(flatOwners.getFlats());
+			 for(AdditionalParkingSlots v:additionalParkingSlots) {
+				 v.setSlotOccupied(false);
+				 v.setFlats(null);
+				 additionalParkingSlotsDao.save(v);
+			 }
 			 Responses responses = responsesDao.findById(35);
 				System.out.println("responseId" + responses.getResponsesId());
 				System.out.println("resName" + responses.getResName());

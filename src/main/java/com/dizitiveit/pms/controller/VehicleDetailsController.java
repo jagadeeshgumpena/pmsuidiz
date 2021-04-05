@@ -15,6 +15,7 @@ import org.springframework.web.bind.annotation.RequestBody;
 import org.springframework.web.bind.annotation.RequestMapping;
 import org.springframework.web.bind.annotation.RestController;
 
+import com.dizitiveit.pms.Dao.AdditionalParkingSlotsDao;
 import com.dizitiveit.pms.Dao.FlatDetailsDao;
 import com.dizitiveit.pms.Dao.FlatOwnersDao;
 import com.dizitiveit.pms.Dao.FlatResidenciesDao;
@@ -22,6 +23,7 @@ import com.dizitiveit.pms.Dao.FlatsDao;
 import com.dizitiveit.pms.Dao.ResponsesDao;
 import com.dizitiveit.pms.Dao.UsersDao;
 import com.dizitiveit.pms.Dao.VehicleDetailsDao;
+import com.dizitiveit.pms.model.AdditionalParkingSlots;
 import com.dizitiveit.pms.model.FlatDetails;
 import com.dizitiveit.pms.model.FlatOwners;
 import com.dizitiveit.pms.model.FlatResidencies;
@@ -63,8 +65,11 @@ public class VehicleDetailsController {
 	@Autowired
 	private MyUserDetailsService userDetailsService;
 	
+	@Autowired
+	private AdditionalParkingSlotsDao additionalParkingSlotsDao;
+	
 	@PostMapping(value="/saveDetails/{flatNo}/{slot}")
-	public ResponseEntity<?> saveDetails(@PathVariable int flatNo,@RequestBody VehicleDetails vehicles,@PathVariable String slot){
+	public ResponseEntity<?> saveDetails(@PathVariable String flatNo,@RequestBody VehicleDetails vehicles,@PathVariable String slot){
 		  Flats flats = flatsDao.findByflatNo(flatNo);
 		VehicleDetails vehicleDetails = new VehicleDetails();
 
@@ -131,8 +136,33 @@ public class VehicleDetailsController {
 		
 		}
 		
-	
-	
+	  @PostMapping("/additionalSLotsAssigning/{flatNo}/{vehicleSlotNo}")
+	  public ResponseEntity<?> additionalSLotsAssigning(@PathVariable String flatNo,@RequestBody VehicleDetails vehicles,@PathVariable String vehicleSlotNo){
+		  Flats flats = flatsDao.findByflatNo(flatNo);
+			VehicleDetails vehicleDetails = new VehicleDetails();
+				vehicleDetails=vehicleDetailsDao.findByRegno(vehicles.getRegNo());
+				if(vehicleDetails==null)
+				{
+			//Flats flats = new Flats();
+			//Flats flats=flatsDao.findByflatNo(flatNo);
+			System.out.println(flatNo);
+			 vehicles.setFlats(flats);
+				vehicleDetailsDao.save(vehicles);
+				 Responses responses = responsesDao.findById(20);
+					System.out.println("responseId" + responses.getResponsesId());
+					System.out.println("resName" + responses.getResName());
+					return ResponseEntity.ok(new Responses(responses.getResponsesId(), responses.getResName()));
+			
+				}
+				else
+				{
+					 Responses responses = responsesDao.findById(33);
+						System.out.println("responseId" + responses.getResponsesId());
+						System.out.println("resName" + responses.getResName());
+						return ResponseEntity.ok(new Responses(responses.getResponsesId(), responses.getResName()));
+					
+				}
+	  }
 
 	 @GetMapping(value="/retrieveVehicles")
 	   public ResponseEntity<?> retrieveVehicles() {
@@ -217,7 +247,7 @@ public class VehicleDetailsController {
 		}
 	 
 	 @PostMapping(value="/updateVehicle/{flatNo}/{slot}")
-	 public ResponseEntity<?> updateVehicle(@PathVariable int flatNo,@RequestBody VehicleDetails vehicles,@PathVariable String slot){
+	 public ResponseEntity<?> updateVehicle(@PathVariable String flatNo,@RequestBody VehicleDetails vehicles,@PathVariable String slot){
 		 Flats flats = flatsDao.findByflatNo(flatNo); 
 		 VehicleDetails vehiclesUpdate = vehicleDetailsDao.findByFlats(flats);
 		 FlatDetails flatDetails = flatDetailsDao.findByFlats(flats);
@@ -307,7 +337,7 @@ public class VehicleDetailsController {
 		   }
 	 
 	 @DeleteMapping(value="/deleteVehicleByFlat/{flatNo}")
-	 public ResponseEntity<?> deleteVehicle(@PathVariable int flatNo){
+	 public ResponseEntity<?> deleteVehicle(@PathVariable String flatNo){
 		 try {
 			 Flats flats = flatsDao.findByflatNo(flatNo); 
 			    //System.out.println("vehicle id is"+vehicleId);  

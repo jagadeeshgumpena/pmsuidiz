@@ -50,7 +50,7 @@ public class PaypalController {
 	}
 
 	@GetMapping(value = "/pay")
-	public ModelAndView payment(@RequestParam(name = "currency") String currency,@RequestParam(name = "price") Double price,@RequestParam(name="mobile") String mobile,@RequestParam(name="flatNo") int flatNo) {
+	public ModelAndView payment(@RequestParam(name = "currency") String currency,@RequestParam(name = "price") Double price,@RequestParam(name="mobile") String mobile,@RequestParam(name="flatNo") String flatNo) {
 		try {
 			System.out.println(mobile);
 			Users users = usersDao.findByMobile(mobile);

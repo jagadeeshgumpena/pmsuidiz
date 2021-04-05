@@ -44,8 +44,8 @@ public class FlatsController {
 	
 	@GetMapping(value="/listflats")
 	public ResponseEntity<?> listflats(){
-		 List<Integer> flats = flatsDao.findAllFlats();		
-		 HashMap<String, List<Integer>> response = new HashMap<String,List<Integer>>();
+		 List<String> flats = flatsDao.findAllFlats();		
+		 HashMap<String, List<String>> response = new HashMap<String,List<String>>();
          response.put("listFlats",flats);
 		 return ResponseEntity.ok(response);
 	}
@@ -80,7 +80,7 @@ public class FlatsController {
 	}
 	
 	@GetMapping(value="/listOfTransactions/{flatNo}")
-	public ResponseEntity<?> listOfTransactions(@PathVariable int flatNo){
+	public ResponseEntity<?> listOfTransactions(@PathVariable String flatNo){
 		 Flats flats = flatsDao.findByflatNo(flatNo); 
 		 List<Transactions>listTransactions=transactionsDao.findByflatsFlatId(flats.getFlatId());
 		 HashMap<String, List<Transactions>> response = new HashMap<String,List<Transactions>>();

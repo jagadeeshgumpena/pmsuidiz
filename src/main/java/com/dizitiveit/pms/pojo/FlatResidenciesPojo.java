@@ -10,7 +10,7 @@ public class FlatResidenciesPojo {
 	  private String email;
 	  private String phone;
 		private boolean tenantActive;
-		private int flatNo;
+		private String flatNo;
 		private String createdAt;
 		private String deactivateddAt;
 		
@@ -45,10 +45,11 @@ public class FlatResidenciesPojo {
 		public void setTenantActive(boolean tenantActive) {
 			this.tenantActive = tenantActive;
 		}
-		public int getFlatNo() {
+		
+		public String getFlatNo() {
 			return flatNo;
 		}
-		public void setFlatNo(int flatNo) {
+		public void setFlatNo(String flatNo) {
 			this.flatNo = flatNo;
 		}
 		public String getCreatedAt() {

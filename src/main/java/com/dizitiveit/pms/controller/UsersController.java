@@ -188,7 +188,7 @@ public class UsersController {
 
 				System.out.println(jwt);
 
-				return ResponseEntity.ok(new AuthenticationResponse(jwt,user.getRoles(),user.getFirstName(),user.getLastName(),0));
+				return ResponseEntity.ok(new AuthenticationResponse(jwt,user.getRoles(),user.getFirstName(),user.getLastName(),""));
 			}
 					
 			else {
@@ -364,7 +364,7 @@ public class UsersController {
 				securityLogin.setBuildingSecurity(buildingSecurity);
 				securityLogin.setPurpose(purpose);
 				securityLoginDetailsDao.save(securityLogin);*/
-				return ResponseEntity.ok(new AuthenticationResponse(jwt,users.getRoles(),users.getFirstName(),users.getLastName(),0));
+				return ResponseEntity.ok(new AuthenticationResponse(jwt,users.getRoles(),users.getFirstName(),users.getLastName(),""));
 				}
 			}
 			else if(users.getRoles().equalsIgnoreCase("ROLE_OWNER"))

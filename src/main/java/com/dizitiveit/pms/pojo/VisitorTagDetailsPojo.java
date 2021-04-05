@@ -18,7 +18,7 @@ public class VisitorTagDetailsPojo {
 	private String visitorName;
 	private String phoneNumber;
 	private String blockNumber;
-	private int flatNo;
+	private String flatNo;
 	private String vehicleType;
 	private String brand;
 	private String model;
@@ -34,5 +34,6 @@ public class VisitorTagDetailsPojo {
 	private String visitorStatus;
 	private double parkingCost;
 	private String parkingSLot;
+	private String residentType;
 	
 }

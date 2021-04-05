@@ -10,7 +10,7 @@ public class FlatOwnersPojo {
 
 	
 
-	  private int flatNo;
+	  private String flatNo;
 	   private String firstname;
 	   private String lastName;
 	 private String email; 
@@ -49,10 +49,11 @@ public class FlatOwnersPojo {
 		public void setPhone(String phone) {
 			this.phone = phone;
 		}
-		public int getFlatNo() {
+		
+		public String getFlatNo() {
 			return flatNo;
 		}
-		public void setFlatNo(int flatNo) {
+		public void setFlatNo(String flatNo) {
 			this.flatNo = flatNo;
 		}
 		public String getType() {

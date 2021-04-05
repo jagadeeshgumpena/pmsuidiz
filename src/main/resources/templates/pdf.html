@@ -1,0 +1,202 @@
+<!doctype html>
+<html lang="en" xmlns:th="http://www.thymeleaf.org">
+<head>
+    <meta charset="UTF-8">
+    <meta content="width=device-width, user-scalable=no, initial-scale=1.0, maximum-scale=1.0, minimum-scale=1.0"
+          name="viewport">
+    <meta content="ie=edge" http-equiv="X-UA-Compatible">
+    <title>Spring Boot - Thymeleaf</title>
+   
+    
+<style type="text/css">
+</style>
+</head>
+
+<body class="flex items-center justify-center h-screen">
+
+<table
+          border="1"
+          width="90%"
+          style="border-collapse: collapse;margin:10px auto"
+          class="tableDeatails"
+          id="customers"
+        >
+          <tr>
+            <td colspan="10" style="text-align:center"><h1>DIZI WELFARE ASSOCIATION</h1></td>
+          </tr>
+          <tr>
+            <td colspan="9">GST NO.36AAFAT8!88G!ZY</td>
+            <td>PAN NO.36AAFAT8!88G!ZY</td>
+          </tr>
+          <tr>
+            <td colspan="10"><h3>TAX INVOICE</h3></td>
+          </tr>
+          <tr>
+               <th rowspan="4" colspan="5" >Bill To Address<p>M/S Dizitive IT Solution.<br>b607,The Platina,Gachigowali,<br>RR Dist,500032</p></th>
+           <td colspan="4" style="text-align:right;" >Invoice No:</td>
+    <td th:text="${invoiceDetails.invoiceDetailsId}"></td>
+  </tr>
+  <tr>
+    <td colspan="4" style="text-align:right;">Flat No:</td>
+    <td th:text="${invoiceDetails.flats.flatNo}"></td>
+  </tr>
+    <tr>
+    <td colspan="4" style="text-align:right;">Date:</td>
+    <td th:text="${invoiceDetails.createdAt}" ></td>
+  </tr>
+    
+         
+          <tr>
+            <td colspan="3">GST No:37AAMFD2592C1ZF</td>
+            <td style="text-align:right">SAC CODE</td>
+            <td>997221</td>
+          </tr>
+          <tr>
+            <td colspan="10"><h3>MAINTENANCE</h3></td>
+          </tr>
+          <tr>
+            <th colspan="1">MB</th>
+            <th colspan="2">Electricity</th>
+            <th colspan="1">Water</th>
+            <th colspan="1">Salary</th>
+            <th colspan="2">Infra Structure</th>
+            <th colspan="1">Generator</th>
+            <th colspan="2">Amount</th>
+            <!-- <td rowspan="2"><v-btn  @click="getuser(user)">go</v-btn></td> -->
+          </tr>
+          <tr>
+            <td colspan="1">1</td>
+                                        <td colspan="2" th:text="${generalInvoice.electricityBill}"></td>
+                                        <td colspan="1" th:text="${generalInvoice.water}"></td>
+                                        <td colspan="1" th:text="${generalInvoice.salary}"></td>
+                                        <td colspan="2" th:text="${generalInvoice.infraStructure}"></td>
+                                        <td colspan="1" th:text="${generalInvoice.generator}"></td>
+            							 <td colspan="2" th:text="${total}"></td>
+          </tr>
+          <tr>
+            <td colspan="10"><h3>General Invoice</h3></td>
+          </tr>
+          <tr>
+            <th colspan="1">EB</th>
+            <th colspan="2">Opening Reading</th>
+            <th colspan="2">Consumed Units</th>
+            <th colspan="1">Closing Reading</th>
+            <th colspan="2">Rs.ps<br />PerUnit</th>
+            <th colspan="2">Amount</th>
+            
+          </tr>
+          <tr>
+            <td colspan="1">2</td>
+            <td colspan="2" th:text="${invoiceDetails.electricityOpeningReading}">
+             
+            </td>
+            <td colspan="2" th:text="${invoiceDetails.electricityConsumedUnits}">
+             
+            </td>
+            <td colspan="1" th:text="${invoiceDetails.electricityClosingReading}">
+             
+            </td>
+            <td colspan="2" th:text="${invoiceDetails.electricityRsPerUnit}">
+            
+            </td>
+            <td colspan="2" th:text="${invoiceDetails.electricityAmount}" >
+            </td>
+            
+          </tr>
+          <tr>
+            <th colspan="1">WB</th>
+            <th colspan="2">Opening Reading</th>
+            <th colspan="2">Consumed Units</th>
+            <th colspan="2">Closing Reading</th>
+            <th colspan="1">Rs.ps PerUnit</th>
+            <th colspan="2">Amount</th>
+          </tr>
+          <tr>
+            <td  colspan="1">3</td>
+            <td colspan="2" th:text="${invoiceDetails.waterOpeningReading}">
+             
+            </td>
+            <td colspan="2" th:text="${invoiceDetails.waterConsumedUnits}">
+            
+            </td>
+            <td colspan="2" th:text="${invoiceDetails.waterClosingReading}">
+            
+            </td>
+            <td colspan="1" th:text="${invoiceDetails.waterRsPerUnit}">
+    
+            </td>
+            <td colspan="2" th:text="${invoiceDetails.waterAmount}">
+            </td>
+          </tr>
+          <tr>
+            <td colspan="9" style="text-align: right">
+              <h4>TOTAL MB+EB+WB</h4>
+            </td>
+            <td th:text="${overAlltotal}">
+              
+            </td>
+          </tr>
+         <tr>
+    <td><h4>Add</h4></td>
+    <td colspan="8" style="text-align:right;"><h4>I.G.S.T@18%</h4></td>
+    <td th:text="${GstAmount}"></td>
+  </tr>
+    <tr>
+    <td colspan="9" style="text-align:right;"><h4>TOTAL INVOICED AMOUNT</h4></td>
+    <td th:text="${invoiceAmount}">  </td>
+  </tr>
+          <tr>
+            <td colspan="10"><h4>Terms & Conditions</h4></td>
+          </tr>
+          <tr>
+            <td>1</td>
+            <td colspan="9">
+              Cheques/Drafts shall be drawn favouring "THE PLATINA WELFARE
+              ASSOCIATION"
+            </td>
+          </tr>
+          <tr>
+            <td>2</td>
+            <td colspan="9">
+              Cheques/Drafts shall be drawn favouring "THE PLATINA WELFARE
+              ASSOCIATION"
+            </td>
+          </tr>
+          <tr>
+            <td>3</td>
+            <td colspan="9">
+              Cheques/Drafts shall be drawn favouring "THE PLATINA WELFARE
+              ASSOCIATION"
+            </td>
+          </tr>
+          <tr>
+            <td>4</td>
+            <td colspan="9">
+              Cheques/Drafts shall be drawn favouring "THE PLATINA WELFARE
+              ASSOCIATION"
+            </td>
+          </tr>
+          <tr>
+            <td rowspan="5" colspan="5">
+              Bill To Address
+              <p>
+                M/S Dizitive IT Solution.<br />b607,The Platina,Gachigowali,<br />RR
+                Dist,500032
+              </p>
+            </td>
+            <td
+              rowspan="5"
+              colspan="5"
+              style="text-align: right; margin-top: 40px"
+            >
+              <b>For DIZI WELFARE ASSOCIATION</b> <br /><br />
+              <br /><br />
+              <b>Authorised Signatory</b>
+            </td>
+          </tr>
+        </table>
+    
+   
+
+</body>
+</html>
