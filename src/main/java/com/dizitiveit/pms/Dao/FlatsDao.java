@@ -15,6 +15,6 @@ public interface FlatsDao extends JpaRepository<Flats, Long> {
 	 @Query(value = "select flat_no FROM pms.flats order by flat_no", nativeQuery = true)
 	 List<String> findAllFlats();
 	 
-	 @Query(value = "select * FROM pms.flats order by flat_no", nativeQuery = true)
+	 @Query(value = "select * FROM pms.flats  order by flat_no", nativeQuery = true)
 	 List<Flats> findAll();
 }

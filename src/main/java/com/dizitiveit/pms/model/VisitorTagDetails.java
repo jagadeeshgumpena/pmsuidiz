@@ -48,6 +48,6 @@ public class VisitorTagDetails {
 	 * private boolean thursday; private boolean friday; private boolean saturday;
 	 */
 	@ManyToOne
-	private VisitorParkingSlots visitorParkingSlots;
+	private  Slots slots;
 	private String residentType;
 }

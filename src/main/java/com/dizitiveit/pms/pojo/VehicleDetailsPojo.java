@@ -8,8 +8,36 @@ public class VehicleDetailsPojo {
 	private String color;
 	private String make;
 	private String model;
+	private String name;
+	private String phone;
+	private boolean vehicleStatus;
+	private String flatNo;
 	
 	
+	public String getFlatNo() {
+		return flatNo;
+	}
+	public void setFlatNo(String flatNo) {
+		this.flatNo = flatNo;
+	}
+	public String getName() {
+		return name;
+	}
+	public void setName(String name) {
+		this.name = name;
+	}
+	public String getPhone() {
+		return phone;
+	}
+	public void setPhone(String phone) {
+		this.phone = phone;
+	}
+	public boolean isVehicleStatus() {
+		return vehicleStatus;
+	}
+	public void setVehicleStatus(boolean vehicleStatus) {
+		this.vehicleStatus = vehicleStatus;
+	}
 	public String getType() {
 		return type;
 	}

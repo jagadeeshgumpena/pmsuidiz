@@ -22,6 +22,7 @@ public class BuildingSecurity {
 	 private String lastName;
 	 private String address;
 	 private String nationalCard;
+	 private boolean securityActive;
 	
 	
 }

@@ -13,5 +13,6 @@ public class InvoicePojo {
 	private FlatInvoicePojo flatInvoicePojo;
 	private InvoiceDetailsPojo invoiceDetailsPojo;
 	private  FlatOwnersPojo flatResident;
+	private VisitorsParkingCostPojo visitorsParkingCostPojo;
 	
 }

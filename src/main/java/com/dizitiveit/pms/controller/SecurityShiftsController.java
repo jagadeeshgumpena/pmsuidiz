@@ -452,7 +452,7 @@ public class SecurityShiftsController {
 				date = new SimpleDateFormat("yyyy-MM-dd").parse(value);
 				System.out.println(date);
 		
-			List<SecurityShifts> securityShifts=securityShiftsDao.findBySecurityToday(date);
+			List<SecurityShifts> securityShifts=securityShiftsDao.findBySecurityToday(date,true);
 			List<BuildingSecurity> buildingSecurityList= new ArrayList();
 			
 			for(SecurityShifts securityShift : securityShifts)
@@ -606,7 +606,7 @@ public class SecurityShiftsController {
 		
 		List<BuildingSecurity> listSecurity=buildingSecurityDao.findAll();
 		for(BuildingSecurity buildingSecurity : listSecurity) {
-			List<SecurityShifts> securityShiftsNew= securityShiftsDao.findByBuildingSecurity(buildingSecurity);
+			List<SecurityShifts> securityShiftsNew= securityShiftsDao.findByShiftSlotBySecurityId(buildingSecurity.getSecurityId(),true);
 			if(securityShiftsNew.size()==0)
 			{
 				listResponseSecurity.add(buildingSecurity);

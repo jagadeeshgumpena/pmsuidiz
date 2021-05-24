@@ -26,6 +26,7 @@ import com.dizitiveit.pms.Dao.FlatOwnersDao;
 import com.dizitiveit.pms.Dao.FlatResidenciesDao;
 import com.dizitiveit.pms.Dao.FlatsDao;
 import com.dizitiveit.pms.Dao.ResponsesDao;
+import com.dizitiveit.pms.Dao.SlotsDao;
 import com.dizitiveit.pms.Dao.UsersDao;
 import com.dizitiveit.pms.Dao.VehicleDetailsDao;
 import com.dizitiveit.pms.model.AdditionalParkingSlots;
@@ -36,12 +37,15 @@ import com.dizitiveit.pms.model.FlatResidencies;
 import com.dizitiveit.pms.model.Flats;
 import com.dizitiveit.pms.model.Residents;
 import com.dizitiveit.pms.model.Responses;
+import com.dizitiveit.pms.model.Slots;
 import com.dizitiveit.pms.model.Users;
 import com.dizitiveit.pms.model.VehicleDetails;
+import com.dizitiveit.pms.pojo.ActiveResidentDetailsPojo;
 import com.dizitiveit.pms.pojo.FlatDetailsPojo;
 import com.dizitiveit.pms.pojo.FlatOwnersPojo;
 import com.dizitiveit.pms.pojo.FlatResidenciesPojo;
 import com.dizitiveit.pms.pojo.SecurityShiftsPojo;
+import com.dizitiveit.pms.pojo.SlotsPojo;
 import com.dizitiveit.pms.pojo.VehicleDetailsPojo;
 import com.dizitiveit.pms.service.MyUserDetailsService;
 import com.dizitiveit.pms.service.OtpSenderService;
@@ -82,6 +86,9 @@ public class OwnerTenantRegistrationController {
    
    @Autowired
    private AdditionalParkingSlotsDao additionalParkingSlotsDao;
+   
+   @Autowired
+   private SlotsDao slotsDao;
 
 	@Transactional
 	@RequestMapping(value = "/ownerRegistration/{flatNo}/{type}", method = RequestMethod.POST)
@@ -142,13 +149,9 @@ public class OwnerTenantRegistrationController {
 			//if(flatOwners.getFlatDetails()!=null)
 			//{
 				
-			FlatDetails flatDetails =flatOwners.getFlatDetails();
 			
-			FlatDetails flatDetailsActive=flatDetailsDao.findByFlats(flats);
-			if(flatDetailsActive!=null) {
 				flatOwners.setFlats(flats);
 				flatOwners.setOwnerActive(true);	
-				flatOwners.setFlatDetails(flatDetailsActive);
 				flatOwners.setType("Owner");
 				flatOwners.setCreatedAt(new Date());
 				System.out.println(flatOwners);
@@ -162,7 +165,7 @@ public class OwnerTenantRegistrationController {
 			
 			//sendEmail(email);
 			//FlatResidencies flatResidencies = residents.getFlatResidencies();
-			}
+			
 				
 			}
 			else
@@ -184,15 +187,8 @@ public class OwnerTenantRegistrationController {
 			if(flatOwnersActive==null)
 			{
 				
-				
-			FlatDetails flatDetails =flatOwners.getFlatDetails();
-			
-			FlatDetails flatDetailsActive=flatDetailsDao.findByFlats(flats);
-			if(flatDetailsActive!=null)
-			{
 				flatOwners.setFlats(flats);
 				flatOwners.setOwnerActive(true);
-				flatOwners.setFlatDetails(flatDetailsActive);
 				flatOwners.setType("Management");
 				flatOwners.setCreatedAt(new Date());
 				flatOwnersDao.save(flatOwners);	
@@ -205,7 +201,7 @@ public class OwnerTenantRegistrationController {
 			//sendEmail(email);
 			//FlatResidencies flatResidencies = residents.getFlatResidencies();
 			 
-			}
+			
 			else
 			{
 				Responses responses = responsesDao.findById(24);
@@ -219,7 +215,7 @@ public class OwnerTenantRegistrationController {
 			Responses responses = responsesDao.findById(37);
    			  return ResponseEntity.ok(new  Responses(responses.getResponsesId(),responses.getResName()));
 		}	
-		return null;		
+		
 			
 }
 			
@@ -255,17 +251,24 @@ public class OwnerTenantRegistrationController {
 	 public ResponseEntity<?> tenentRegistartion(@PathVariable String flatNo,@RequestBody FlatResidencies flatResidencies){
 		System.out.println(flatResidencies.toString());
 		Flats flats = flatsDao.findByflatNo(flatNo);
-		List<VehicleDetails> vehicleDetails = vehicleDetailsDao.findByflats(flats.getFlatId());
-		 FlatDetails flatDetails = flatDetailsDao.findByFlats(flats);
-		if(vehicleDetails!=null) {
-			 flatDetails.setB1Occupied(false);
-			 flatDetails.setB2Occupied(false);
-			 flatDetails.setC1Occupied(false);
-			 flatDetails.setC2Occupied(false);
-			 System.out.println(flatDetails);
-			 flatDetailsDao.save(flatDetails);		
-			 this.vehicleDetailsDao.removeVehicleDetailsByflatId(flats.getFlatId());
+		List<VehicleDetails> vehicleDetails = vehicleDetailsDao.findByflats(flats.getFlatId(),true);	
+		if(vehicleDetails!=null) {	
+			 //this.vehicleDetailsDao.removeVehicleDetailsByflatId(flats.getFlatId());
+			 for(VehicleDetails vehicle : vehicleDetails)
+			 {
+				 vehicle.setVehicleStatus(false);
+				 vehicleDetailsDao.save(vehicle);
+			 }
 			
+		}
+		List<Slots> slots = slotsDao.findByflatId(flats.getFlatId());
+		for(Slots slot : slots)
+		{
+			slot.setAssigned(false);
+			slot.setOccupied(false);
+			slot.setFilled(false);
+			slot.setFlats(null);
+			slotsDao.save(slot);
 		}
 		long flatResidentsId=0;
 		FlatOwners flatOwners=flatOwnersDao.findByownersActive(flats.getFlatId(), true);
@@ -439,23 +442,26 @@ public class OwnerTenantRegistrationController {
 			 
 			  if(flatOwners!=null)
 			  {
-				  if(flatOwners.getFlatDetails()!=null)
-				  {
-			  FlatDetails flatDetails=flatDetailsDao.findByflatdetailsId(flatOwners.getFlatDetails().getFlatdetailsId());
-			  System.out.println("after flatdetails dao");
-			  if(flatDetails!=null)
-			  {
-				  FlatDetailsPojo flatDetailsPojo= new FlatDetailsPojo();
-				  flatDetailsPojo.setB1Occupied(flatDetails.isB1Occupied());
-				  flatDetailsPojo.setB1ParkingSlot(flatDetails.getB1ParkingSlot());
-				  flatDetailsPojo.setB2Occupied(flatDetails.isB2Occupied());
-				  flatDetailsPojo.setB2ParkingSlot(flatDetails.getB2ParkingSlot());
-				  flatDetailsPojo.setC1Occupied(flatDetails.isC1Occupied());
-				  flatDetailsPojo.setC1ParkingSlot(flatDetails.getC1ParkingSlot());
-				  flatDetailsPojo.setC2Occupied(flatDetails.isB2Occupied());
-				  flatDetailsPojo.setC2ParkingSlot(flatDetails.getC2ParkingSlot());
-				  resident.setFlatDetails(flatDetailsPojo);
-			  }
+				  List<Slots> slots = slotsDao.findByflatId(f.getFlatId());
+					 if(slots!=null) {
+						 List<SlotsPojo> slotsPojo = new ArrayList();
+						 
+						 for(Slots slot : slots) 
+						 {
+							
+							 SlotsPojo slotPojo= new SlotsPojo();
+							 slotPojo.setSlotNo(slot.getSlotNo());
+							 slotPojo.setFloor(slot.getFloor());
+							 slotPojo.setBlock(slot.getBlock());
+							 slotPojo.setAssigned(slot.isAssigned());
+							 slotPojo.setFlatNo(f.getFlatNo());
+							 slotPojo.setOccupied(slot.isOccupied());
+							 slotPojo.setVehicleType(slot.getVehicleType());
+							 slotPojo.setBillingType(slot.getBillingType());
+						 
+					 }
+						 resident.setSlots(slotsPojo);
+					  
 			  
 				  }
 			  }
@@ -490,9 +496,10 @@ public class OwnerTenantRegistrationController {
 	 
 	 @GetMapping("/getResidentsDetailsByType/{type}")
 		public ResponseEntity<?> getResidentsDetailsByType(@PathVariable String type){
+		 System.out.println(type);
 		 List<Flats> flats= flatsDao.findAll();
 			List<Residents> residents= new ArrayList();
-			
+			List<ActiveResidentDetailsPojo> activeResident = new ArrayList();
 				for(Flats f : flats)
 				{
 					Residents resident= new Residents();
@@ -541,7 +548,89 @@ public class OwnerTenantRegistrationController {
 					  resident.setFlatResidencies(flatresidenciesPojo);
 					  
 				  }
-				  List<VehicleDetails> vehicleDetails = vehicleDetailsDao.findByflats(f.getFlatId());
+				  if(type.equalsIgnoreCase("activeList"))
+					 {
+						 flatOwners = flatOwnersDao.findByownersActive(f.getFlatId(),true);
+						 ActiveResidentDetailsPojo activeResidentPojo = new ActiveResidentDetailsPojo();
+						 System.out.println(f.getFlatId());
+						 if(flatOwners!=null)
+						 {
+						 if(flatOwners.getFlatResidencies()==null) {	
+							 FlatOwnersPojo flatOwnersPojo= new FlatOwnersPojo();
+							  flatOwnersPojo.setFlatNo(f.getFlatNo());
+							  flatOwnersPojo.setFirstname(flatOwners.getFirstname());
+							  flatOwnersPojo.setLastName(flatOwners.getLastName());
+							  flatOwnersPojo.setPhone(flatOwners.getPhone());
+							  flatOwnersPojo.setEmail(flatOwners.getEmail());
+							  DateFormat dfCreated = new SimpleDateFormat("yyyy-MM-dd  HH:mm:ss");
+				 				if(flatOwners.getCreatedAt()!=null) {
+				 					flatOwnersPojo.setCreatedAt((dfCreated.format(flatOwners.getCreatedAt())));
+				 				}
+				 				activeResidentPojo.setResident(flatOwnersPojo);
+							 
+						 }
+						 else {
+							 
+							// FlatResidenciesPojo flatresidenciesPojo= new FlatResidenciesPojo();
+							 FlatOwnersPojo flatOwnersPojo= new FlatOwnersPojo();
+							 flatOwnersPojo.setFirstname(flatOwners.getFlatResidencies().getFirstname());
+							 flatOwnersPojo.setLastName(flatOwners.getFlatResidencies().getLastName());
+							 flatOwnersPojo.setPhone(flatOwners.getFlatResidencies().getPhone());
+							 flatOwnersPojo.setEmail(flatOwners.getFlatResidencies().getEmail());
+							  DateFormat dfCreated = new SimpleDateFormat("yyyy-MM-dd  HH:mm:ss");
+				 				if(flatResidencies.getCreatedAt()!=null) {
+				 					flatOwnersPojo.setCreatedAt((dfCreated.format(flatOwners.getFlatResidencies().getCreatedAt())));
+				 				}
+				 				activeResidentPojo.setResident(flatOwnersPojo);
+						 }
+						 List<VehicleDetails> vehicleDetails = vehicleDetailsDao.findByflats(f.getFlatId(),true);
+						 
+						 if(vehicleDetails!=null) 
+						 {	
+							 List<VehicleDetailsPojo> vehicleDetailsPojo = new ArrayList();
+						 
+							 for(VehicleDetails v : vehicleDetails) 
+							 {
+								
+								 VehicleDetailsPojo vehicledetailsPojo= new VehicleDetailsPojo();
+								 vehicledetailsPojo.setVehicleId(v.getVehicleId());
+								 vehicledetailsPojo.setMake(v.getMake());
+								 vehicledetailsPojo.setModel(v.getModel());
+								 vehicledetailsPojo.setColor(v.getColor());
+								 vehicledetailsPojo.setRegNo(v.getRegNo());
+								 vehicledetailsPojo.setType(v.getType());
+								 vehicleDetailsPojo.add(vehicledetailsPojo);
+							 
+						 }
+							 activeResidentPojo.setVehicleDetails(vehicleDetailsPojo);
+						 } 
+					  if(flatOwners!=null)
+					  {
+						 List<Slots> slots = slotsDao.findByflatId(f.getFlatId());
+						
+							 List<SlotsPojo> slotsPojo = new ArrayList();
+							 
+							 for(Slots slot : slots) 
+							 {
+								 SlotsPojo slotPojo= new SlotsPojo();
+								 slotPojo.setSlotNo(slot.getSlotNo());
+								 System.out.println(slotPojo.getSlotNo());
+								 slotPojo.setFloor(slot.getFloor());
+								 slotPojo.setFlatNo(f.getFlatNo());
+								 slotPojo.setAssigned(slot.isAssigned());
+								 slotPojo.setVehicleType(slot.getVehicleType());
+								 slotPojo.setBlock(slot.getBlock());
+								 slotPojo.setOccupied(slot.isOccupied());
+								 slotPojo.setBillingType(slot.getBillingType());
+								 slotsPojo.add(slotPojo);
+						 }
+							 activeResidentPojo.setSlots(slotsPojo);
+						  
+					  }
+						 activeResident.add(activeResidentPojo);
+					 }
+					 }	
+				  List<VehicleDetails> vehicleDetails = vehicleDetailsDao.findByflats(f.getFlatId(),true);
 				 
 					 if(vehicleDetails!=null) 
 					 {	
@@ -564,28 +653,29 @@ public class OwnerTenantRegistrationController {
 					 } 
 				  if(flatOwners!=null)
 				  {
-					  if(flatOwners.getFlatDetails()!=null)
-					  {
-				  FlatDetails flatDetails=flatDetailsDao.findByflatdetailsId(flatOwners.getFlatDetails().getFlatdetailsId());
-				  System.out.println("after flatdetails dao");
-				  if(flatDetails!=null)
-				  {
-					  FlatDetailsPojo flatDetailsPojo= new FlatDetailsPojo();
-					  flatDetailsPojo.setB1Occupied(flatDetails.isB1Occupied());
-					  flatDetailsPojo.setB1ParkingSlot(flatDetails.getB1ParkingSlot());
-					  flatDetailsPojo.setB2Occupied(flatDetails.isB2Occupied());
-					  flatDetailsPojo.setB2ParkingSlot(flatDetails.getB2ParkingSlot());
-					  flatDetailsPojo.setC1Occupied(flatDetails.isC1Occupied());
-					  flatDetailsPojo.setC1ParkingSlot(flatDetails.getC1ParkingSlot());
-					  flatDetailsPojo.setC2Occupied(flatDetails.isC2Occupied());
-					  flatDetailsPojo.setC2ParkingSlot(flatDetails.getC2ParkingSlot());
-					  resident.setFlatDetails(flatDetailsPojo);
-				  }
-					  }
-				  }
-				
+					 List<Slots> slots = slotsDao.findByflatId(f.getFlatId());
 					
-					 
+						 List<SlotsPojo> slotsPojo = new ArrayList();
+						 
+						 for(Slots slot : slots) 
+						 {
+							 SlotsPojo slotPojo= new SlotsPojo();
+							 slotPojo.setSlotNo(slot.getSlotNo());
+							 System.out.println(slotPojo.getSlotNo());
+							 slotPojo.setFloor(slot.getFloor());
+							 slotPojo.setFlatNo(f.getFlatNo());
+							 slotPojo.setAssigned(slot.isAssigned());
+							 slotPojo.setVehicleType(slot.getVehicleType());
+							 slotPojo.setBlock(slot.getBlock());
+							 slotPojo.setOccupied(slot.isOccupied());
+							 slotPojo.setBillingType(slot.getBillingType());
+							 slotsPojo.add(slotPojo);
+					 }
+						 resident.setSlots(slotsPojo);
+					  
+				  }
+				 
+				   
 				System.out.println("after owners dao");
 				  if(flatOwners!=null)
 				  {
@@ -593,8 +683,17 @@ public class OwnerTenantRegistrationController {
 				  }
 			}		
 			
-			  HashMap<String, List<Residents>> response = new HashMap<String,List<Residents>>(); response.put("residents", residents);
+				if(type.equalsIgnoreCase("activeList"))
+				{
+					HashMap<String, List<ActiveResidentDetailsPojo>> response = new HashMap<String,List<ActiveResidentDetailsPojo>>();
+					  response.put("residents", activeResident);
+					  return ResponseEntity.ok(response);
+				}
+				else {
+			  HashMap<String, List<Residents>> response = new HashMap<String,List<Residents>>();
+			  response.put("residents", residents);
 			  return ResponseEntity.ok(response);	
+				}
 }
 
 	 
@@ -607,12 +706,18 @@ public class OwnerTenantRegistrationController {
 			FlatOwners flatOwners = flatOwnersDao.findByPhone(mobile);
 			FlatOwners managementOwner = new FlatOwners();
 			 managementOwner.setFlatResidencies(flatOwners.getFlatResidencies());
-			 managementOwner.setFlatDetails(flatOwners.getFlatDetails());
 			flatOwners.setFlatResidencies(null);
-			flatOwners.setFlatDetails(null);
 			flatOwners.setOwnerActive(false);
 			flatOwners.setUpdatedAt(new Date());
 			flatOwnersDao.save(flatOwners);
+			List<Slots> slots = slotsDao.findByflatId(flatOwners.getFlats().getFlatId());
+			for(Slots slot: slots) {
+				slot.setFlats(null);
+				slot.setOccupied(false);
+				slot.setAssigned(false);
+                slot.setFilled(false);
+				slotsDao.save(slot);
+			}
 			 managementOwner.setFlats(flatOwners.getFlats());
 			 managementOwner.setEmail("management@gmail.com");
 			 managementOwner.setPhone("9067543218");
@@ -643,15 +748,17 @@ public class OwnerTenantRegistrationController {
 			flatResidencies.setTenantActive(false);
 			flatResidencies.setUpdatedAt(new Date());
 			flatResidenciesDao.save(flatResidencies);
+			List<Slots> slots = slotsDao.findByflatId(flatResidencies.getFlats().getFlatId());
+			for(Slots slot: slots) {
+				slot.setFlats(null);
+				slot.setOccupied(false);
+				slot.setAssigned(false);
+                slot.setFilled(false);
+				slotsDao.save(slot);
+			}
 			FlatOwners flatOwners = flatOwnersDao.findByFlatResidencies(flatResidencies);
 			flatOwners.setFlatResidencies(null);
 			flatOwnersDao.save(flatOwners);
-			List<AdditionalParkingSlots> additionalParkingSlots = additionalParkingSlotsDao.findByFlats(flatOwners.getFlats());
-			 for(AdditionalParkingSlots v:additionalParkingSlots) {
-				 v.setSlotOccupied(false);
-				 v.setFlats(null);
-				 additionalParkingSlotsDao.save(v);
-			 }
 			 Responses responses = responsesDao.findById(35);
 				System.out.println("responseId" + responses.getResponsesId());
 				System.out.println("resName" + responses.getResName());

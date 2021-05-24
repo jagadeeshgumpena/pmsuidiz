@@ -38,12 +38,18 @@ import lombok.Data;
   
    private String model;
   
-  private String status;
   @OneToOne
   private FlatDetails flatDetails;
- 
+ private boolean vehicleStatus;
   private Date createdAt;
 	private Date updatedAt;
+@ManyToOne
+private FlatOwners flatOwners;
+
+@ManyToOne
+private FlatResidencies flatResidencies;
+	
+	
 
   
   }

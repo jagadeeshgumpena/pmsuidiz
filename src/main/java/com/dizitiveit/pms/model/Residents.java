@@ -5,21 +5,24 @@ import java.util.List;
 import com.dizitiveit.pms.pojo.FlatDetailsPojo;
 import com.dizitiveit.pms.pojo.FlatOwnersPojo;
 import com.dizitiveit.pms.pojo.FlatResidenciesPojo;
+import com.dizitiveit.pms.pojo.SlotsPojo;
 import com.dizitiveit.pms.pojo.VehicleDetailsPojo;
 
 public class Residents {
 
 	private FlatOwnersPojo flatOwners;
 	private FlatResidenciesPojo flatResidencies;
-	private FlatDetailsPojo flatDetails;
+	private List<SlotsPojo> slots;
 	private List<VehicleDetailsPojo> vehicleDetails;
 	
 	
-	public FlatDetailsPojo getFlatDetails() {
-		return flatDetails;
+	
+	
+	public List<SlotsPojo> getSlots() {
+		return slots;
 	}
-	public void setFlatDetails(FlatDetailsPojo flatDetails) {
-		this.flatDetails = flatDetails;
+	public void setSlots(List<SlotsPojo> slots) {
+		this.slots = slots;
 	}
 	public FlatResidenciesPojo getFlatResidencies() {
 		return flatResidencies;

@@ -1,6 +1,7 @@
 package com.dizitiveit.pms.controller;
 
 import java.util.ArrayList;
+import java.util.Date;
 import java.util.HashMap;
 import java.util.List;
 
@@ -21,6 +22,7 @@ import com.dizitiveit.pms.Dao.FlatOwnersDao;
 import com.dizitiveit.pms.Dao.FlatResidenciesDao;
 import com.dizitiveit.pms.Dao.FlatsDao;
 import com.dizitiveit.pms.Dao.ResponsesDao;
+import com.dizitiveit.pms.Dao.SlotsDao;
 import com.dizitiveit.pms.Dao.UsersDao;
 import com.dizitiveit.pms.Dao.VehicleDetailsDao;
 import com.dizitiveit.pms.model.AdditionalParkingSlots;
@@ -29,10 +31,13 @@ import com.dizitiveit.pms.model.FlatOwners;
 import com.dizitiveit.pms.model.FlatResidencies;
 import com.dizitiveit.pms.model.Flats;
 import com.dizitiveit.pms.model.Responses;
+import com.dizitiveit.pms.model.Slots;
 import com.dizitiveit.pms.model.Users;
 import com.dizitiveit.pms.model.VehicleDetails;
 import com.dizitiveit.pms.pojo.VehicleDetailsPojo;
 import com.dizitiveit.pms.service.MyUserDetailsService;
+
+import lombok.experimental.PackagePrivate;
 
 @RestController
 @RequestMapping("/vehicle")
@@ -57,10 +62,10 @@ public class VehicleDetailsController {
 	private FlatOwnersDao flatOwnersDao;
 	
 	@Autowired
-	private FlatDetailsDao flatDetailsDao;
+	private FlatResidenciesDao flatResidenciesDao;
 	
 	@Autowired
-	private FlatResidenciesDao flatResidenciesDao;
+	private FlatDetailsDao flatDetailsDao;
 	
 	@Autowired
 	private MyUserDetailsService userDetailsService;
@@ -68,101 +73,88 @@ public class VehicleDetailsController {
 	@Autowired
 	private AdditionalParkingSlotsDao additionalParkingSlotsDao;
 	
-	@PostMapping(value="/saveDetails/{flatNo}/{slot}")
-	public ResponseEntity<?> saveDetails(@PathVariable String flatNo,@RequestBody VehicleDetails vehicles,@PathVariable String slot){
+    @Autowired
+    private SlotsDao slotsDao;
+	
+	@PostMapping(value="/saveDetails/{flatNo}")
+	public ResponseEntity<?> saveDetails(@PathVariable String flatNo,@RequestBody VehicleDetails vehicles){
 		  Flats flats = flatsDao.findByflatNo(flatNo);
 		VehicleDetails vehicleDetails = new VehicleDetails();
-
 			vehicleDetails=vehicleDetailsDao.findByRegno(vehicles.getRegNo());
 			if(vehicleDetails==null)
 			{
-		//Flats flats = new Flats();
-		//Flats flats=flatsDao.findByflatNo(flatNo);
+
 		System.out.println(flatNo);
-		FlatDetails flatDetails = flatDetailsDao.findByFlats(flats);
-		if(flatDetails!=null)
+		FlatOwners flatOwners = flatOwnersDao.findByFlats(flats);
+		if(flatOwners.getFlatResidencies()==null)
 		{
-		if(vehicles.getType().equalsIgnoreCase("2-wheeler"))
-		{
-			if(slot.contains("b1")) {
-				flatDetails.setB1Occupied(true);
-			     
-			}
-			else if(slot.contains("b2")) {
-				flatDetails.setB2Occupied(true);
-			}
-			
-			flatDetailsDao.save(flatDetails);
-			vehicles.setFlatDetails(flatDetails);
-				   vehicles.setFlats(flats);
-				vehicleDetailsDao.save(vehicles);
-		}
-		 if(vehicles.getType().equalsIgnoreCase("4-wheeler"))
-		 {
-			 if(slot.contains("c1")) {
-					flatDetails.setC1Occupied(true);
-				     
-				}
-				else if(slot.contains("c2")) {
-					flatDetails.setC2Occupied(true);
-				}
-		flatDetailsDao.save(flatDetails);
-		vehicles.setFlatDetails(flatDetails);
+			vehicles.setFlatOwners(flatOwners);
+			System.out.println(flatOwners.toString());
+			  vehicles.setCreatedAt(new Date());
 			   vehicles.setFlats(flats);
+			   vehicles.setVehicleStatus(true);
 			vehicleDetailsDao.save(vehicles);
 		}
-			 Responses responses = responsesDao.findById(20);
-				System.out.println("responseId" + responses.getResponsesId());
-				System.out.println("resName" + responses.getResName());
-				return ResponseEntity.ok(new Responses(responses.getResponsesId(), responses.getResName()));
+		else {
+			vehicles.setFlatResidencies(flatOwners.getFlatResidencies());
+			  vehicles.setCreatedAt(new Date());
+			   vehicles.setFlats(flats);
+			   vehicles.setVehicleStatus(true);
+			vehicleDetailsDao.save(vehicles);
 		}
-		else
-		{
-			 Responses responses = responsesDao.findById(32);
-				System.out.println("responseId" + responses.getResponsesId());
-				System.out.println("resName" + responses.getResName());
-				return ResponseEntity.ok(new Responses(responses.getResponsesId(), responses.getResName()));
+		 Responses responses = responsesDao.findById(20);
+			System.out.println("responseId" + responses.getResponsesId());
+			System.out.println("resName" + responses.getResName());
+			return ResponseEntity.ok(new Responses(responses.getResponsesId(), responses.getResName()));
 			
 		}
-			}
-		else
-		{
+			else {
 			 Responses responses = responsesDao.findById(33);
 				System.out.println("responseId" + responses.getResponsesId());
 				System.out.println("resName" + responses.getResName());
 				return ResponseEntity.ok(new Responses(responses.getResponsesId(), responses.getResName()));
-			
+			}
 		}
 		
+		@PostMapping("/vehicleRegistrationForFlat/{flatNo}")
+		public ResponseEntity<?> vehicleRegistrationForFlat(@PathVariable String flatNo,@RequestBody VehicleDetails vehicles){
+			  Flats flats = flatsDao.findByflatNo(flatNo);
+				VehicleDetails vehicleDetails = new VehicleDetails();
+					vehicleDetails=vehicleDetailsDao.findByRegno(vehicles.getRegNo());
+					if(vehicleDetails==null)
+					{
+						System.out.println(flatNo);
+						FlatOwners flatOwners = flatOwnersDao.findByFlats(flats);
+						if(flatOwners.getFlatResidencies()==null)
+						{
+							vehicles.setFlatOwners(flatOwners);
+							System.out.println(flatOwners.toString());
+							  vehicles.setCreatedAt(new Date());
+							   vehicles.setFlats(flats);
+							   vehicles.setVehicleStatus(true);
+							vehicleDetailsDao.save(vehicles);
+						}
+						else {
+							vehicles.setFlatResidencies(flatOwners.getFlatResidencies());
+							  vehicles.setCreatedAt(new Date());
+							   vehicles.setFlats(flats);
+							   vehicles.setVehicleStatus(true);
+							vehicleDetailsDao.save(vehicles);
+						}
+						 Responses responses = responsesDao.findById(20);
+							System.out.println("responseId" + responses.getResponsesId());
+							System.out.println("resName" + responses.getResName());
+							return ResponseEntity.ok(new Responses(responses.getResponsesId(), responses.getResName()));
+							
+					}
+							else {
+							 Responses responses = responsesDao.findById(33);
+								System.out.println("responseId" + responses.getResponsesId());
+								System.out.println("resName" + responses.getResName());
+								return ResponseEntity.ok(new Responses(responses.getResponsesId(), responses.getResName()));
+							}
 		}
 		
-	  @PostMapping("/additionalSLotsAssigning/{flatNo}/{vehicleSlotNo}")
-	  public ResponseEntity<?> additionalSLotsAssigning(@PathVariable String flatNo,@RequestBody VehicleDetails vehicles,@PathVariable String vehicleSlotNo){
-		  Flats flats = flatsDao.findByflatNo(flatNo);
-			VehicleDetails vehicleDetails = new VehicleDetails();
-				vehicleDetails=vehicleDetailsDao.findByRegno(vehicles.getRegNo());
-				if(vehicleDetails==null)
-				{
-			//Flats flats = new Flats();
-			//Flats flats=flatsDao.findByflatNo(flatNo);
-			System.out.println(flatNo);
-			 vehicles.setFlats(flats);
-				vehicleDetailsDao.save(vehicles);
-				 Responses responses = responsesDao.findById(20);
-					System.out.println("responseId" + responses.getResponsesId());
-					System.out.println("resName" + responses.getResName());
-					return ResponseEntity.ok(new Responses(responses.getResponsesId(), responses.getResName()));
-			
-				}
-				else
-				{
-					 Responses responses = responsesDao.findById(33);
-						System.out.println("responseId" + responses.getResponsesId());
-						System.out.println("resName" + responses.getResName());
-						return ResponseEntity.ok(new Responses(responses.getResponsesId(), responses.getResName()));
-					
-				}
-	  }
 
 	 @GetMapping(value="/retrieveVehicles")
 	   public ResponseEntity<?> retrieveVehicles() {
@@ -174,16 +166,29 @@ public class VehicleDetailsController {
 				   FlatOwners flatOwners = flatOwnersDao.findByownersPhone(users.getMobile(),true);
 				   if(flatOwners.getFlatResidencies()==null)
 				   {
-					   List<VehicleDetails> vehicleDetails = vehicleDetailsDao.findByflats(flatOwners.getFlats().getFlatId());
+					   List<VehicleDetails> vehicleDetails = vehicleDetailsDao.findByFlats(flatOwners.getFlats());
 				    	
 						   for(VehicleDetails v : vehicleDetails) {
 							   VehicleDetailsPojo vehicleDetailsPojo = new VehicleDetailsPojo();
 							   vehicleDetailsPojo.setVehicleId(v.getVehicleId());
 							   vehicleDetailsPojo.setMake(v.getMake());
 							   vehicleDetailsPojo.setModel(v.getModel());
+							   vehicleDetailsPojo.setFlatNo(v.getFlats().getFlatNo());
 							   vehicleDetailsPojo.setColor(v.getColor());
 							   vehicleDetailsPojo.setRegNo(v.getRegNo());
 							   vehicleDetailsPojo.setType(v.getType());
+							   vehicleDetailsPojo.setVehicleStatus(v.isVehicleStatus());
+							   if(v.getFlatOwners()!=null)
+							   {
+								   
+								   vehicleDetailsPojo.setName(v.getFlatOwners().getFirstname());
+								   vehicleDetailsPojo.setPhone(v.getFlatOwners().getPhone());
+							   }
+							   else if(v.getFlatResidencies()!=null)
+							   {
+								   vehicleDetailsPojo.setName(v.getFlatResidencies().getFirstname());
+								   vehicleDetailsPojo.setPhone(v.getFlatResidencies().getPhone());
+							   }
 								// vehicleDetailsPojo.add(vehicleDetails);
 							   vehicleDetailsPojoList.add(vehicleDetailsPojo);
 						   
@@ -204,16 +209,18 @@ public class VehicleDetailsController {
 			   {
 				  FlatResidencies flatResidencies=flatResidenciesDao.findByPhone(users.getMobile());
 				  FlatOwners flatOwners= flatOwnersDao.findByFlatResidencies(flatResidencies);
-				  List<VehicleDetails> vehicleDetails = vehicleDetailsDao.findByflats(flatOwners.getFlats().getFlatId());
+				  List<VehicleDetails> vehicleDetails = vehicleDetailsDao.findByFlats(flatOwners.getFlats());
 			    	
 					   for(VehicleDetails v : vehicleDetails) {
 						   VehicleDetailsPojo vehicleDetailsPojo = new VehicleDetailsPojo();
 						   vehicleDetailsPojo.setVehicleId(v.getVehicleId());
 						   vehicleDetailsPojo.setMake(v.getMake());
 						   vehicleDetailsPojo.setModel(v.getModel());
+						   vehicleDetailsPojo.setFlatNo(v.getFlats().getFlatNo());
 						   vehicleDetailsPojo.setColor(v.getColor());
 						   vehicleDetailsPojo.setRegNo(v.getRegNo());
 						   vehicleDetailsPojo.setType(v.getType());
+						   vehicleDetailsPojo.setVehicleStatus(v.isVehicleStatus());
 							// vehicleDetailsPojo.add(vehicleDetails);
 						   vehicleDetailsPojoList.add(vehicleDetailsPojo);
 					   
@@ -233,100 +240,131 @@ public class VehicleDetailsController {
 			
 		}
 	 
-	 @GetMapping(value="/retrieveVehiclesbystatus/{status}")
-	   public ResponseEntity<?> retrieveVehiclesbystatus (@PathVariable String status) {
-		   try {
-			 List<VehicleDetails>listVehicleDetails=vehicleDetailsDao.findBystatus(status);
-			 HashMap<String, List<VehicleDetails>> response = new HashMap<String,List<VehicleDetails>>();
-	              response.put("listVehicleDetails",listVehicleDetails);
-			 return ResponseEntity.ok(response);
-		   }catch (Exception E) {
-			   ResponseEntity.badRequest();
-			   return ResponseEntity.ok(E);
-			}
-		}
-	 
-	 @PostMapping(value="/updateVehicle/{flatNo}/{slot}")
-	 public ResponseEntity<?> updateVehicle(@PathVariable String flatNo,@RequestBody VehicleDetails vehicles,@PathVariable String slot){
+	 @GetMapping(value="/getDeactivateList/{flatNo}")
+	 public ResponseEntity<?> getDeactivateList(@PathVariable String flatNo){
 		 Flats flats = flatsDao.findByflatNo(flatNo); 
-		 VehicleDetails vehiclesUpdate = vehicleDetailsDao.findByFlats(flats);
-		 FlatDetails flatDetails = flatDetailsDao.findByFlats(flats);
-		 flatDetails.setB1Occupied(false);
-		 flatDetails.setB2Occupied(false);
-		 flatDetails.setC1Occupied(false);
-		 flatDetails.setC2Occupied(false);
-		 System.out.println(flatDetails);
-		 flatDetailsDao.save(flatDetails);
-		 if(vehiclesUpdate.getType().equalsIgnoreCase("2-wheeler")) {
-			 if(slot.contains("b1")) {
-					flatDetails.setB1Occupied(true);
-				     
-				}
-				else if(slot.contains("b2")) {
-					flatDetails.setB2Occupied(true);
-				}
-			 flatDetailsDao.save(flatDetails);
-		 vehiclesUpdate.setColor(vehicles.getColor());
-		 vehiclesUpdate.setMake(vehicles.getMake());
-		 vehiclesUpdate.setModel(vehicles.getModel());
-		 vehiclesUpdate.setRegNo(vehicles.getRegNo());
-		 vehiclesUpdate.setStatus(vehicles.getStatus());
-		 vehiclesUpdate.setType(vehicles.getType());
-		 vehicleDetailsDao.save(vehiclesUpdate);
-		 }
-		  if(vehiclesUpdate.getType().equalsIgnoreCase("4-wheeler")) {
-			  if(slot.contains("c1")) {
-					flatDetails.setC1Occupied(true);
-				     
-				}
-				else if(slot.contains("c2")) {
-					flatDetails.setC2Occupied(true);
-				}
-			 flatDetailsDao.save(flatDetails);
+		 List<VehicleDetailsPojo> vehicleDetailsPojoList= new ArrayList();
+		 List<VehicleDetails> vehicleDetails = vehicleDetailsDao.findByflatsAndVehicleStatus(flats.getFlatId(),false);
+		 for(VehicleDetails v : vehicleDetails) {
+			   VehicleDetailsPojo vehicleDetailsPojo = new VehicleDetailsPojo();
+			   vehicleDetailsPojo.setVehicleId(v.getVehicleId());
+			   vehicleDetailsPojo.setMake(v.getMake());
+			   vehicleDetailsPojo.setModel(v.getModel());
+			   vehicleDetailsPojo.setFlatNo(v.getFlats().getFlatNo());
+			   vehicleDetailsPojo.setColor(v.getColor());
+			   vehicleDetailsPojo.setRegNo(v.getRegNo());
+			   vehicleDetailsPojo.setType(v.getType());
+				// vehicleDetailsPojo.add(vehicleDetails);
+			   vehicleDetailsPojoList.add(vehicleDetailsPojo);
+		   }
+		 HashMap<String, List<VehicleDetailsPojo>> response = new HashMap<String,List<VehicleDetailsPojo>>();
+         response.put("OwnerVehicleDetails",vehicleDetailsPojoList);
+	 return ResponseEntity.ok(response);
+	 }
+	 
+	 @PostMapping(value="/updateVehicle/{vehicleId}")
+	 public ResponseEntity<?> updateVehicle(@PathVariable long vehicleId,@RequestBody VehicleDetails vehicles){
+		// Flats flats = flatsDao.findByflatNo(flatNo); 
+		 VehicleDetails vehiclesUpdate = vehicleDetailsDao.findByvehicleId(vehicleId);
+		    if(vehiclesUpdate!=null)
+		    {  	
+		     vehiclesUpdate.setUpdatedAt(new Date()); 	
+		     vehiclesUpdate.setFlats(vehicles.getFlats());
 			 vehiclesUpdate.setColor(vehicles.getColor());
 			 vehiclesUpdate.setMake(vehicles.getMake());
 			 vehiclesUpdate.setModel(vehicles.getModel());
 			 vehiclesUpdate.setRegNo(vehicles.getRegNo());
-			 vehiclesUpdate.setStatus(vehicles.getStatus());
+			 vehiclesUpdate.setVehicleStatus(vehicles.isVehicleStatus());
 			 vehiclesUpdate.setType(vehicles.getType());
 			 vehicleDetailsDao.save(vehiclesUpdate);
-		 }
-		 Responses responses = responsesDao.findById(19);
+		    }
+		    Responses responses = responsesDao.findById(19);
 			System.out.println("responseId" + responses.getResponsesId());
 			System.out.println("resName" + responses.getResName());
 			return ResponseEntity.ok(new Responses(responses.getResponsesId(), responses.getResName()));
 	 }
 	 
+	 @PostMapping("activatingVehicle/{vehicleId}")
+	 public ResponseEntity<?> activatingVehicle(@PathVariable long vehicleId)
+	 {
+		 VehicleDetails vehicleActivate = vehicleDetailsDao.findByvehicleId(vehicleId);
+		 if(vehicleActivate!=null) {
+			 vehicleActivate.setVehicleStatus(true);
+			 vehicleDetailsDao.save(vehicleActivate);
+		 }
+		 Responses responses = responsesDao.findById(66);
+			System.out.println("responseId" + responses.getResponsesId());
+			System.out.println("resName" + responses.getResName());
+			return ResponseEntity.ok(new Responses(responses.getResponsesId(), responses.getResName()));
+	 }
+	 
+	 @PostMapping("deactivateSingleVehicle/{vehicleId}")
+	 public ResponseEntity<?> deactivateSingleVehicle(@PathVariable long vehicleId){
+		 VehicleDetails vehicleDeactivate = vehicleDetailsDao.findByvehicleId(vehicleId);
+		 if(vehicleDeactivate!=null) {
+			 List<Slots> slots = slotsDao.getByvehicleType(vehicleDeactivate.getFlats().getFlatId(),vehicleDeactivate.getType(),true);
+			 for(Slots slot:slots) {
+			 if(slot.isOccupied()==true) {
+				 slot.setOccupied(false);
+				 slotsDao.save(slot);
+			 }
+			 else {
+				 Responses responses = responsesDao.findById(65);
+					System.out.println("responseId" + responses.getResponsesId());
+					System.out.println("resName" + responses.getResName());
+					return ResponseEntity.ok(new Responses(responses.getResponsesId(), responses.getResName()));
+			 }
+			 }
+			 vehicleDeactivate.setVehicleStatus(false);
+			 vehicleDetailsDao.save(vehicleDeactivate);
+		 }
+		 Responses responses = responsesDao.findById(64);
+			System.out.println("responseId" + responses.getResponsesId());
+			System.out.println("resName" + responses.getResName());
+			return ResponseEntity.ok(new Responses(responses.getResponsesId(), responses.getResName()));
+	 }
+	 
+	 @PostMapping("deactivatingVehicleByFlat/{flatNo}")
+	 public ResponseEntity<?> deactivatingVehicleByFlat(@PathVariable String flatNo){
+		 Flats flats = flatsDao.findByflatNo(flatNo); 
+		    //System.out.println("vehicle id is"+vehicleId);  
+		 List<VehicleDetails> vehicleDetails = vehicleDetailsDao.findByflatsAndVehicleStatus(flats.getFlatId(),true);
+		 if(vehicleDetails!=null) {
+			 for(VehicleDetails vehicle: vehicleDetails) {
+				 vehicle.setVehicleStatus(false);
+				 vehicleDetailsDao.save(vehicle);
+				 vehicleDetails.add(vehicle);
+			 }
+			 List<Slots> slots = slotsDao.findByflatId(flats.getFlatId());
+			    for(Slots slot:slots) {
+			    	slot.setOccupied(false);
+			    	slot.setAssigned(false);
+			    	slot.setFlats(null);
+			    	slotsDao.save(slot);
+			    	slots.add(slot);
+			    }
+			    Responses responses = responsesDao.findById(64);
+				System.out.println("responseId" + responses.getResponsesId());
+				System.out.println("resName" + responses.getResName());
+				return ResponseEntity.ok(new Responses(responses.getResponsesId(), responses.getResName()));
+		 }
+		 else {
+			 Responses responses = responsesDao.findById(63);
+				System.out.println("responseId" + responses.getResponsesId());
+				System.out.println("resName" + responses.getResName());
+				return ResponseEntity.ok(new Responses(responses.getResponsesId(), responses.getResName()));
+		 }
+		    
+	 }
 	 @DeleteMapping(value="/deleteVehicle/{vehicleId}")
 	 public ResponseEntity<?> deleteVehicle(@PathVariable long vehicleId){
 		 try {
-			    System.out.println("vehicle id is"+vehicleId); 
+			    System.out.println("vehicle id is"+vehicleId);
 			    VehicleDetails vehicleDetails = vehicleDetailsDao.findByvehicleId(vehicleId);
-			    FlatDetails flatDetails = flatDetailsDao.findByFlats(vehicleDetails.getFlats());
-			    if(vehicleDetails.getType().equalsIgnoreCase("2-wheeler")) {
-			    	 if(flatDetails.isB1Occupied()==true) {
-							flatDetails.setB1Occupied(false);
-						     
-						}
-						else if(flatDetails.isB2Occupied()==true) {
-							flatDetails.setB2Occupied(false);
-						}
-					 flatDetailsDao.save(flatDetails);
 			    this.vehicleDetailsDao.deleteById(vehicleId);
-			    }
-			    if(vehicleDetails.getType().equalsIgnoreCase("4-wheeler")) {
-			    	 if(flatDetails.isC1Occupied()==true) {
-							flatDetails.setC1Occupied(false);
-						     
-						}
-						else if(flatDetails.isC2Occupied()==true) {
-							flatDetails.setC2Occupied(false);
-						}
-					 flatDetailsDao.save(flatDetails);
-			    this.vehicleDetailsDao.deleteById(vehicleId);
-			    }
+		 } 
 				 
-			 }catch (Exception E) {
+			 catch (Exception E) {
 					E.printStackTrace();
 					TransactionAspectSupport.currentTransactionStatus().setRollbackOnly();
 					return ResponseEntity.status(500).body(E.getMessage());
@@ -341,14 +379,14 @@ public class VehicleDetailsController {
 		 try {
 			 Flats flats = flatsDao.findByflatNo(flatNo); 
 			    //System.out.println("vehicle id is"+vehicleId);  
-			    FlatDetails flatDetails = flatDetailsDao.findByFlats(flats);
-			    
-				 flatDetails.setB1Occupied(false);
-				 flatDetails.setB2Occupied(false);
-				 flatDetails.setC1Occupied(false);
-				 flatDetails.setC2Occupied(false);
-				 System.out.println(flatDetails);
-				 flatDetailsDao.save(flatDetails);		
+			  List<Slots> slots = slotsDao.findByflatId(flats.getFlatId());
+			    for(Slots slot:slots) {
+			    	slot.setOccupied(false);
+			    	slot.setFlats(null);
+			    	slot.setAssigned(false);
+			    	slotsDao.save(slot);
+			    	slots.add(slot);
+			    }		
 				 this.vehicleDetailsDao.removeVehicleDetailsByflatId(flats.getFlatId());
 			 }catch (Exception E) {
 					E.printStackTrace();
@@ -359,6 +397,8 @@ public class VehicleDetailsController {
 		 Responses responses = responsesDao.findById(44);
 			return ResponseEntity.ok(new Responses(responses.getResponsesId(), responses.getResName()));
 		   }
+	 
+	 
 		 
 	 }
 	

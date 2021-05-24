@@ -44,9 +44,10 @@ import com.dizitiveit.pms.service.C07E04_CreateFromURL;
 import com.dizitiveit.pms.service.PdfService;
 import com.itextpdf.html2pdf.ConverterProperties;
 import com.itextpdf.html2pdf.HtmlConverter;
-import com.itextpdf.html2pdf.css.media.MediaDeviceDescription;
+
 import com.itextpdf.kernel.pdf.PdfDocument;
 import com.itextpdf.kernel.pdf.PdfWriter;
+import com.itextpdf.styledxmlparser.css.media.MediaDeviceDescription;
 import com.itextpdf.text.PageSize;
 
 
@@ -141,8 +142,8 @@ public class InvoiceController {
 		return ResponseEntity.ok(response);
 	}
 	
-	@RequestMapping(path = "/pdf/{flatNo}")
-    public ResponseEntity<?> getPDF(HttpServletRequest request, HttpServletResponse response,@PathVariable int flatNo) throws IOException {
+	@RequestMapping(path = "/pdf/{flatNo}/{month}/{year}")
+    public ResponseEntity<?> getPDF(HttpServletRequest request, HttpServletResponse response,@PathVariable String flatNo,@PathVariable long month,@PathVariable long year) throws IOException {
 
         /* Do Business Logic*/
 
@@ -174,7 +175,8 @@ public class InvoiceController {
         properties.setMediaDeviceDescription(mediaDeviceDescription);
         //HtmlConverter.convertToPdf(new URL(ADDRESS).openStream(), pdf, properties);
         
-        String ADDRESSUrl = "http://localhost:8081/pdf/viewinvoice/"+flatNo;
+       // String ADDRESSUrl = "http://localhost:8081/pdf/viewinvoice/"+flatNo+"/"+month+"/"+year;
+        String ADDRESSUrl = "http://103.50.161.240:8080/pms-test/pdf/viewinvoice/"+flatNo+"/"+month+"/"+year;
         HtmlConverter.convertToPdf(new URL(ADDRESSUrl).openStream(), target,properties);
         /* extract output as bytes */
         byte[] bytes = target.toByteArray();
@@ -189,7 +191,34 @@ public class InvoiceController {
     }
 	
 	
-	
+	@RequestMapping(path = "/visitorsPdf/{flatNo}/{month}/{year}")
+    public ResponseEntity<?> getvisitorsPdf(HttpServletRequest request, HttpServletResponse response,@PathVariable String flatNo,@PathVariable long month,@PathVariable long year) throws IOException {
+
+        ByteArrayOutputStream target = new ByteArrayOutputStream();
+
+    
+        
+        ConverterProperties properties = new ConverterProperties();
+        MediaDeviceDescription mediaDeviceDescription =
+            new MediaDeviceDescription(MediaType.ALL_VALUE);
+      
+        properties.setMediaDeviceDescription(mediaDeviceDescription);
+      
+        
+       // String ADDRESSUrl = "http://localhost:8081/pdf/viewVisitorsList/"+flatNo+"/"+month+"/"+year;
+        String ADDRESSUrl = "http://103.50.161.240:8080/pms-test/pdf/viewVisitorsList/"+flatNo+"/"+month+"/"+year;
+        HtmlConverter.convertToPdf(new URL(ADDRESSUrl).openStream(), target,properties);
+        /* extract output as bytes */
+        byte[] bytes = target.toByteArray();
+
+
+        /* Send the response as downloadable PDF */
+
+        return ResponseEntity.ok()
+                .contentType(MediaType.APPLICATION_PDF)
+                .body(bytes);
+
+    }
 	
 
 }

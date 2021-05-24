@@ -21,20 +21,28 @@ import com.dizitiveit.pms.Dao.FlatInvoiceDao;
 import com.dizitiveit.pms.Dao.FlatOwnersDao;
 import com.dizitiveit.pms.Dao.FlatResidenciesDao;
 import com.dizitiveit.pms.Dao.FlatsDao;
+import com.dizitiveit.pms.Dao.GeneralInvoiceDao;
 import com.dizitiveit.pms.Dao.InvoiceDetailsDao;
 import com.dizitiveit.pms.Dao.ResponsesDao;
+import com.dizitiveit.pms.Dao.VehicleMovementRegisterDao;
+import com.dizitiveit.pms.Dao.VisitorParkingSlotsDao;
+import com.dizitiveit.pms.Dao.VisitorTagDetailsDao;
 import com.dizitiveit.pms.model.FlatInvoice;
 import com.dizitiveit.pms.model.FlatOwners;
 import com.dizitiveit.pms.model.Flats;
 import com.dizitiveit.pms.model.GeneralInvoice;
 import com.dizitiveit.pms.model.InvoiceDetails;
 import com.dizitiveit.pms.model.Responses;
+import com.dizitiveit.pms.model.VehicleMovementRegister;
+import com.dizitiveit.pms.model.VisitorTagDetails;
 import com.dizitiveit.pms.pojo.FlatInvoicePojo;
 import com.dizitiveit.pms.pojo.FlatOwnersPojo;
 import com.dizitiveit.pms.pojo.FlatResidenciesPojo;
 import com.dizitiveit.pms.pojo.InvoiceDetailsPojo;
 import com.dizitiveit.pms.pojo.InvoiceListPojo;
 import com.dizitiveit.pms.pojo.InvoicePojo;
+import com.dizitiveit.pms.pojo.VisitorTagDetailsPojo;
+import com.dizitiveit.pms.pojo.VisitorsParkingCostPojo;
 
 @RestController
 @RequestMapping("/flatInvoice")
@@ -58,6 +66,15 @@ public class FlatInvoiceController {
 	
 	@Autowired
 	private FlatResidenciesDao flatResidenciesDao;
+	
+	@Autowired
+	private VisitorTagDetailsDao visitorTagDetailsDao;
+	
+	@Autowired
+	private GeneralInvoiceDao generalInvoiceDao;
+	
+	@Autowired
+	private VehicleMovementRegisterDao vehicleMovementRegisterDao;
 
 	@PostMapping("/saveFlatInvoice/{flatNo}")
 	public ResponseEntity<?> saveFlatInvoice(@PathVariable String flatNo,@RequestBody FlatInvoice flatInvoice){
@@ -92,6 +109,8 @@ public class FlatInvoiceController {
 			Flats flats = flatsDao.findByflatNo(flatNo);
 			InvoicePojo invoice = new InvoicePojo();
 			FlatInvoice flatInvoice = flatInvoiceDao.getInvoice(month, year, flats.getFlatId());
+			if(flatInvoice!=null)
+			{
 			FlatInvoicePojo flatInvoicePojo = new FlatInvoicePojo();
 			if(flatInvoice!=null) {
 			flatInvoicePojo.setFlatNo(flatNo);
@@ -128,7 +147,34 @@ public class FlatInvoiceController {
 				invoiceDetailsPojo.setCreatedAt((dfCreatedDetails.format(invoiceDetails.getCreatedAt())));
 			}
 			}
-			
+			double totalParkingCost=0;
+			long totalVistors=0;
+			List<VisitorTagDetails> vistorList = visitorTagDetailsDao.getVisitorInvoice(month, year,  flats.getFlatId(),"OUT");
+			totalVistors = vistorList.size();
+			List<VehicleMovementRegister> vehicleMovementList = vehicleMovementRegisterDao.getVehicleMovementInvoice(month, year);
+			totalVistors=totalVistors+vehicleMovementList.size();
+			for(VehicleMovementRegister vehicleMovementRegister :vehicleMovementList )
+			{
+				if(vehicleMovementRegister.getVehicleDetails().getFlats().getFlatId()==flats.getFlatId())
+				{
+					totalParkingCost=totalParkingCost+vehicleMovementRegister.getParkingCost();
+					
+				}
+			}
+ 			List<VisitorTagDetailsPojo> visitorListPojo = new ArrayList();
+ 			
+ 			VisitorsParkingCostPojo visitors = new VisitorsParkingCostPojo();
+ 			for( VisitorTagDetails visitor :  vistorList)
+ 			{
+ 				if(visitor.getParkingCost()!=0)
+ 				{
+ 					totalParkingCost= totalParkingCost+visitor.getParkingCost();
+ 					
+ 				}
+ 			}
+ 			visitors.setTotalParkingCost(totalParkingCost);
+				visitors.setNumberOfVisitors(totalVistors);
+ 			
 			FlatOwners flatOwners = flatOwnersDao.findByownersActive(flats.getFlatId(),true);
 			FlatOwnersPojo flatResident= new FlatOwnersPojo();
 			if(flatOwners!=null && flatOwners.getFlatResidencies()==null)
@@ -161,11 +207,50 @@ public class FlatInvoiceController {
 			invoice.setInvoiceDetailsPojo(invoiceDetailsPojo);
 			invoice.setFlatInvoicePojo(flatInvoicePojo);
 			invoice.setFlatResident(flatResident);
-			
+			invoice.setVisitorsParkingCostPojo(visitors);
 			HashMap<String, InvoicePojo> response = new HashMap<String,InvoicePojo>();
 	         response.put("Invoice",invoice);
-		 return ResponseEntity.ok(response);
+	         return ResponseEntity.ok(response);
+			}
+			else {
+				Responses responses = responsesDao.findById(76);
+				System.out.println("responseId" + responses.getResponsesId());
+				System.out.println("resName" + responses.getResName());
+				return ResponseEntity.ok(new Responses(responses.getResponsesId(), responses.getResName()));
+			}
 			
+	}
+	
+	@GetMapping("/getLatestFlatInvoice")
+	public ResponseEntity<?> getLatestFlatInvoice(){
+		 List<FlatInvoicePojo> invoices = new ArrayList();
+		 List<GeneralInvoice> generalInvoiceList = generalInvoiceDao.findByLatest();
+		 for(GeneralInvoice generalInvoice : generalInvoiceList )
+		 {
+			 List<FlatInvoice> flatInvoice = flatInvoiceDao.findBycreatedAt(generalInvoice.getCreatedAt());
+			 if(flatInvoice.size()>0)
+			 {
+			 FlatInvoice flatInvoiceNew=flatInvoice.get(0);
+			 FlatInvoicePojo flatInvoicepojo = new FlatInvoicePojo();
+			 DateFormat dfCreatedFlat = new SimpleDateFormat("yyyy-MM-dd");
+				if(flatInvoiceNew.getCreatedAt()!=null) {
+					flatInvoicepojo.setCreatedAt((dfCreatedFlat.format(flatInvoiceNew.getCreatedAt())));
+				}
+			
+			 flatInvoicepojo.setElectricityBill(flatInvoiceNew.getElectricityBill());
+			 flatInvoicepojo.setFlatInvoiceId(flatInvoiceNew.getFlatInvoiceId());
+			 flatInvoicepojo.setGenerator(flatInvoiceNew.getGenerator());
+			 flatInvoicepojo.setInfraStructure(flatInvoiceNew.getInfraStructure());
+			 flatInvoicepojo.setSalary(flatInvoiceNew.getSalary());
+			 flatInvoicepojo.setWater(flatInvoiceNew.getWater());
+			 invoices.add(flatInvoicepojo);
+			 }
+			 
+		 }	 
+		 HashMap<String, List<FlatInvoicePojo>> response = new HashMap<String,List<FlatInvoicePojo>>();
+         response.put("FlatInvoicePojo",invoices);
+	 return ResponseEntity.ok(response);
+		 
 	}
 	
 	@GetMapping("/getGeneralLastestInvoiceByFlat")
@@ -176,7 +261,7 @@ public class FlatInvoiceController {
 			InvoicePojo invoice = new InvoicePojo();
 			FlatInvoice flatInvoice = flatInvoiceDao.getInvoiceByFlat(f.getFlatId());
 			FlatInvoicePojo flatInvoicePojo = new FlatInvoicePojo();
-			if(flatInvoice!=null) {
+			if(flatInvoice!=null ) {	
 			flatInvoicePojo.setFlatNo(f.getFlatNo());
 			flatInvoicePojo.setFlatInvoiceId(flatInvoice.getFlatInvoiceId());
 			flatInvoicePojo.setGenerator(flatInvoice.getGenerator());
@@ -188,11 +273,13 @@ public class FlatInvoiceController {
 				if(flatInvoice.getCreatedAt()!=null) {
 					flatInvoicePojo.setCreatedAt((dfCreatedFlat.format(flatInvoice.getCreatedAt())));
 				}
+				
+				invoice.setFlatInvoicePojo(flatInvoicePojo);
+				
 			}
-			
-			InvoiceDetails invoiceDetails = invoiceDetailsDao.getInvoiceByFlat(f.getFlatId());
+			InvoiceDetails invoiceDetails = invoiceDetailsDao.getLatestInvoiceByFlat(f.getFlatId());
 			InvoiceDetailsPojo invoiceDetailsPojo = new InvoiceDetailsPojo();
-			if(invoiceDetails!=null) {
+			if(invoiceDetails!=null ) {
 			invoiceDetailsPojo.setFlatNo(f.getFlatNo());
 			invoiceDetailsPojo.setElectricityOpeningReading(invoiceDetails.getElectricityOpeningReading());
 			invoiceDetailsPojo.setElectricityClosingReading(invoiceDetails.getElectricityClosingReading());
@@ -209,6 +296,7 @@ public class FlatInvoiceController {
 			if(invoiceDetails.getCreatedAt()!=null) {
 				invoiceDetailsPojo.setCreatedAt((dfCreatedDetails.format(invoiceDetails.getCreatedAt())));
 			}
+			invoice.setInvoiceDetailsPojo(invoiceDetailsPojo);
 			}
 			
 			FlatOwners flatOwners = flatOwnersDao.findByownersActive(f.getFlatId(),true);
@@ -225,7 +313,7 @@ public class FlatInvoiceController {
 	 				if(flatOwners.getCreatedAt()!=null) {
 	 					flatResident.setCreatedAt((dfCreatedOwner.format(flatOwners.getCreatedAt())));
 	 				}
-	 		
+	 				invoice.setFlatResident(flatResident);
 		}
 			else if(flatOwners!=null && flatOwners.getFlatResidencies()!=null )
 			{
@@ -239,12 +327,13 @@ public class FlatInvoiceController {
 	 				if(flatOwners.getFlatResidencies().getCreatedAt()!=null) {
 	 					flatResident.setCreatedAt((dfCreatedTenant.format(flatOwners.getFlatResidencies().getCreatedAt())));
 	 				}
+	 				invoice.setFlatResident(flatResident);
 			}
-		     
-			invoice.setInvoiceDetailsPojo(invoiceDetailsPojo);
-			invoice.setFlatInvoicePojo(flatInvoicePojo);
-			invoice.setFlatResident(flatResident);
+			
+			if(flatInvoice!= null || invoiceDetails!=null)
+			{
 			invoices.add(invoice);
+			}
 
 		     }
 		     HashMap<String, List<InvoicePojo>> response = new HashMap<String,List<InvoicePojo>>();
@@ -340,8 +429,8 @@ public class FlatInvoiceController {
 	 return ResponseEntity.ok(response);
 	}
 	
-	@GetMapping("retrieveInvoicebyLatest/{flatNo}")
-	public ResponseEntity<?> retrieveInvoicebyLatest(@PathVariable String flatNo){
+	@GetMapping("retrieveInvoicebyLatest/{flatNo}/{month}/{year}")
+	public ResponseEntity<?> retrieveInvoicebyLatest(@PathVariable String flatNo,@PathVariable long month,@PathVariable long year){
 		 Flats flats = flatsDao.findByflatNo(flatNo); 
 			InvoicePojo invoice = new InvoicePojo();
 			FlatInvoice flatInvoice = flatInvoiceDao.getInvoiceByFlat(flats.getFlatId());
@@ -367,7 +456,7 @@ public class FlatInvoiceController {
 					return ResponseEntity.ok(new Responses(responses.getResponsesId(), responses.getResName()));
 				
 			}
-			InvoiceDetails invoiceDetails = invoiceDetailsDao.getInvoiceByFlat(flats.getFlatId());
+			InvoiceDetails invoiceDetails = invoiceDetailsDao.getInvoiceByFlat(flats.getFlatId(),month, year);
 			InvoiceDetailsPojo invoiceDetailsPojo = new InvoiceDetailsPojo();
 			if(invoiceDetails!=null) {
 			invoiceDetailsPojo.setFlatNo(flatNo);

@@ -35,5 +35,6 @@ public class VisitorTagDetailsPojo {
 	private double parkingCost;
 	private String parkingSLot;
 	private String residentType;
+	private String slotNo;
 	
 }

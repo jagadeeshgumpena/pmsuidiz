@@ -22,27 +22,27 @@
           id="customers"
         >
           <tr>
-            <td colspan="10" style="text-align:center"><h1>DIZI WELFARE ASSOCIATION</h1></td>
+            <td colspan="10" style="text-align:center;line-height: 15px";><h1>DIZI WELFARE ASSOCIATION</h1></td>
           </tr>
           <tr>
             <td colspan="9">GST NO.36AAFAT8!88G!ZY</td>
             <td>PAN NO.36AAFAT8!88G!ZY</td>
           </tr>
           <tr>
-            <td colspan="10"><h3>TAX INVOICE</h3></td>
+            <td colspan="10" style="line-height: 2px;"><h3>TAX INVOICE</h3></td>
           </tr>
           <tr>
                <th rowspan="4" colspan="5" >Bill To Address<p>M/S Dizitive IT Solution.<br>b607,The Platina,Gachigowali,<br>RR Dist,500032</p></th>
            <td colspan="4" style="text-align:right;" >Invoice No:</td>
-    <td th:text="${invoiceDetails.invoiceDetailsId}"></td>
+    <td th:text="${invoiceDetails!=null} ? ${invoiceDetails.invoiceDetailsId} : ''"></td>
   </tr>
   <tr>
     <td colspan="4" style="text-align:right;">Flat No:</td>
-    <td th:text="${invoiceDetails.flats.flatNo}"></td>
+    <td th:text="${invoiceDetails.flats.flatNo} ? ${invoiceDetails.flats.flatNo} : ''"></td>
   </tr>
     <tr>
     <td colspan="4" style="text-align:right;">Date:</td>
-    <td th:text="${invoiceDetails.createdAt}" ></td>
+    <td th:text="${invoiceDetails.createdAt} ? ${invoiceDetails.createdAt} : ''" ></td>
   </tr>
     
          
@@ -52,7 +52,8 @@
             <td>997221</td>
           </tr>
           <tr>
-            <td colspan="10"><h3>MAINTENANCE</h3></td>
+            <td colspan="10" style="line-height: 5px;"><h3>MAINTENANCE</h3></td>
+            
           </tr>
           <tr>
             <th colspan="1">MB</th>
@@ -66,15 +67,15 @@
           </tr>
           <tr>
             <td colspan="1">1</td>
-                                        <td colspan="2" th:text="${generalInvoice.electricityBill}"></td>
-                                        <td colspan="1" th:text="${generalInvoice.water}"></td>
-                                        <td colspan="1" th:text="${generalInvoice.salary}"></td>
-                                        <td colspan="2" th:text="${generalInvoice.infraStructure}"></td>
-                                        <td colspan="1" th:text="${generalInvoice.generator}"></td>
-            							 <td colspan="2" th:text="${total}"></td>
+                                        <td colspan="2" th:text="${generalInvoice.electricityBill} ? ${generalInvoice.electricityBill} : ''"></td>
+                                        <td colspan="1" th:text="${generalInvoice.water} ? ${generalInvoice.water} : ''"></td>
+                                        <td colspan="1" th:text="${generalInvoice.salary} ? ${generalInvoice.salary} : ''"></td>
+                                        <td colspan="2" th:text="${generalInvoice.infraStructure} ? ${generalInvoice.infraStructure} : ''"></td>
+                                        <td colspan="1" th:text="${generalInvoice.generator} ? ${generalInvoice.generator} : ''"></td>
+            							 <td colspan="2" th:text="${total} ? ${total} : ''"></td>
           </tr>
           <tr>
-            <td colspan="10"><h3>General Invoice</h3></td>
+            <td colspan="10" style="line-height: 5px;"><h3>General Invoice</h3></td>
           </tr>
           <tr>
             <th colspan="1">EB</th>
@@ -87,19 +88,19 @@
           </tr>
           <tr>
             <td colspan="1">2</td>
-            <td colspan="2" th:text="${invoiceDetails.electricityOpeningReading}">
+            <td colspan="2" th:text="${invoiceDetails.electricityOpeningReading} ? ${invoiceDetails.electricityOpeningReading} : ''">
              
             </td>
-            <td colspan="2" th:text="${invoiceDetails.electricityConsumedUnits}">
+            <td colspan="2" th:text="${invoiceDetails.electricityConsumedUnits} ? ${invoiceDetails.electricityConsumedUnits} : ''">
              
             </td>
-            <td colspan="1" th:text="${invoiceDetails.electricityClosingReading}">
+            <td colspan="1" th:text="${invoiceDetails.electricityClosingReading} ? ${invoiceDetails.electricityClosingReading} : ''">
              
             </td>
-            <td colspan="2" th:text="${invoiceDetails.electricityRsPerUnit}">
+            <td colspan="2" th:text="${invoiceDetails.electricityRsPerUnit} ? ${invoiceDetails.electricityRsPerUnit} : ''">
             
             </td>
-            <td colspan="2" th:text="${invoiceDetails.electricityAmount}" >
+            <td colspan="2" th:text="${invoiceDetails.electricityAmount} ? ${invoiceDetails.electricityAmount} : ''" >
             </td>
             
           </tr>
@@ -113,40 +114,62 @@
           </tr>
           <tr>
             <td  colspan="1">3</td>
-            <td colspan="2" th:text="${invoiceDetails.waterOpeningReading}">
+            <td colspan="2" th:text="${invoiceDetails.waterOpeningReading} ? ${invoiceDetails.waterOpeningReading} : ''">
              
             </td>
-            <td colspan="2" th:text="${invoiceDetails.waterConsumedUnits}">
+            <td colspan="2" th:text="${invoiceDetails.waterConsumedUnits} ? ${invoiceDetails.waterConsumedUnits} : ''">
             
             </td>
-            <td colspan="2" th:text="${invoiceDetails.waterClosingReading}">
+            <td colspan="2" th:text="${invoiceDetails.waterClosingReading} ? ${invoiceDetails.waterClosingReading} : ''">
             
             </td>
-            <td colspan="1" th:text="${invoiceDetails.waterRsPerUnit}">
+            <td colspan="1" th:text="${invoiceDetails.waterRsPerUnit} ? ${invoiceDetails.waterRsPerUnit} : ''">
     
             </td>
-            <td colspan="2" th:text="${invoiceDetails.waterAmount}">
+            <td colspan="2" th:text="${invoiceDetails.waterAmount} ? ${invoiceDetails.waterAmount} : ''">
             </td>
           </tr>
+           <tr>
+            <td colspan="10" style="line-height: 5px;"><h3>Parking Cost</h3></td>
+          </tr>
           <tr>
-            <td colspan="9" style="text-align: right">
+            <th colspan="5">Visitor Count</th>
+           
+           
+            <th colspan="5">Amount</th>
+            
+          </tr>
+          <tr>
+          
+            <td colspan="5" th:text="${visitorsCount}">
+             
+            </td>
+            <td colspan="5" th:text="${totalParkingCost}">
+             
+            </td>
+            
+            
+          </tr>
+         
+          <tr>
+            <td colspan="9" style="text-align: right;line-height: 4px;">
               <h4>TOTAL MB+EB+WB</h4>
             </td>
-            <td th:text="${overAlltotal}">
+            <td th:text="${overAlltotal}" style="line-height: 4px;">
               
             </td>
           </tr>
          <tr>
-    <td><h4>Add</h4></td>
-    <td colspan="8" style="text-align:right;"><h4>I.G.S.T@18%</h4></td>
-    <td th:text="${GstAmount}"></td>
+    <td style="line-height: 4px;"><h4>Add</h4></td>
+    <td colspan="8" style="text-align:right;line-height: 4px;"><h4>I.G.S.T@18%</h4></td>
+    <td th:text="${GstAmount}" style="line-height: 4px;"></td>
   </tr>
     <tr>
-    <td colspan="9" style="text-align:right;"><h4>TOTAL INVOICED AMOUNT</h4></td>
-    <td th:text="${invoiceAmount}">  </td>
+    <td colspan="9" style="text-align:right;line-height: 5px;"><h4>TOTAL INVOICED AMOUNT</h4></td>
+    <td th:text="${invoiceAmount}" style="line-height: 5px;">  </td>
   </tr>
           <tr>
-            <td colspan="10"><h4>Terms & Conditions</h4></td>
+            <td colspan="10" style="line-height: 2px;"><h4>Terms & Conditions</h4></td>
           </tr>
           <tr>
             <td>1</td>

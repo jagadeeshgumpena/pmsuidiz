@@ -7,6 +7,7 @@ import org.hibernate.metamodel.model.convert.spi.JpaAttributeConverter;
 import org.springframework.data.jpa.repository.JpaRepository;
 import org.springframework.data.jpa.repository.Query;
 
+import com.dizitiveit.pms.model.FlatInvoice;
 import com.dizitiveit.pms.model.Flats;
 import com.dizitiveit.pms.model.Invoice;
 import com.dizitiveit.pms.model.SecurityShifts;
@@ -49,6 +50,21 @@ public interface VisitorTagDetailsDao extends JpaRepository<VisitorTagDetails,Lo
 	 List<VisitorTagDetails> findByVisitorDate(Date expectedOutTime,boolean status);
 	
 	
-	@Query(value="select * from visitor_tag_number where visitor_status=?1 order by visitor_id asc",nativeQuery = true)
-	List<VisitorTagDetails> findAllVisitorsStatus(String status);
+	@Query(value="select * from visitor_tag_number where visitor_status=?1 and type=?2 order by visitor_id asc",nativeQuery = true)
+	List<VisitorTagDetails> getAllVisitorsStatus(String visitorStatus,String type);
+	
+	@Query(value="select * from visitor_tag_number where expected_out_time=?1 order by visitor_id asc",nativeQuery = true)
+	List<VisitorTagDetails> findAllVisitorsMoreThan24Hours(Date expectedOutTime);
+	
+	@Query(value="select * from visitor_tag_number where flats_flat_id=?1 and created_at=?2 order by visitor_id asc",nativeQuery = true)
+	List<VisitorTagDetails> getByflatNo(long flatId,Date createdAt);
+
+	@Query(value="select * from visitor_tag_number where slots_slots_id=?1  order by visitor_id asc",nativeQuery = true)
+	List<VisitorTagDetails> getByslot(long slotId);
+	
+	@Query(value="select * from visitor_tag_number where  visitor_status=?1 and flats_flat_id=?2 order by visitor_id asc",nativeQuery = true)
+	List<VisitorTagDetails> getInvoiceList(String visitorStatus,long flatId);
+	
+	@Query(value = "SELECT * FROM pms.visitor_tag_number WHERE MONTH(created_at) =?1  and YEAR(created_at) =?2 and flats_flat_id=?3 and visitor_status=?4 order by visitor_id asc", nativeQuery = true)
+	List<VisitorTagDetails> getVisitorInvoice(long month,long year,long flatId,String visitorStatus);
 }

@@ -19,4 +19,7 @@ public interface GeneralInvoiceDao extends JpaRepository<GeneralInvoice,Long>{
 	 @Query(value = "SELECT * FROM pms.general_invoice WHERE MONTH(created_at) =?1  and YEAR(created_at) =?2", nativeQuery = true)
 	 GeneralInvoice findByCreatedAt(long month,long year);
 	 
+	 @Query(value = "SELECT * FROM pms.general_invoice order by created_at desc limit 6", nativeQuery = true)
+	 List<GeneralInvoice> findByLatest();
+	 
 }

@@ -1,3 +1,4 @@
+
 package com.dizitiveit.pms.controller;
 
 import java.io.IOException;
@@ -31,7 +32,9 @@ import com.dizitiveit.pms.Dao.FlatResidenciesDao;
 import com.dizitiveit.pms.Dao.FlatsDao;
 import com.dizitiveit.pms.Dao.ResponsesDao;
 import com.dizitiveit.pms.Dao.SecurityLoginDetailsDao;
+import com.dizitiveit.pms.Dao.SlotsDao;
 import com.dizitiveit.pms.Dao.UsersDao;
+import com.dizitiveit.pms.Dao.VehicleMovementRegisterDao;
 import com.dizitiveit.pms.Dao.VisitorParkingSlotsDao;
 import com.dizitiveit.pms.Dao.VisitorTagDetailsDao;
 import com.dizitiveit.pms.model.BuildingSecurity;
@@ -42,10 +45,16 @@ import com.dizitiveit.pms.model.PushNotificationRequest;
 import com.dizitiveit.pms.model.Responses;
 import com.dizitiveit.pms.model.SecurityLoginDetails;
 import com.dizitiveit.pms.model.SecurityShifts;
+import com.dizitiveit.pms.model.Slots;
 import com.dizitiveit.pms.model.Users;
 import com.dizitiveit.pms.model.VehicleDetails;
+import com.dizitiveit.pms.model.VehicleMovementRegister;
 import com.dizitiveit.pms.model.VisitorParkingSlots;
 import com.dizitiveit.pms.model.VisitorTagDetails;
+import com.dizitiveit.pms.pojo.FlatSlotsPojo;
+import com.dizitiveit.pms.pojo.FlatVisitorSlotPojo;
+import com.dizitiveit.pms.pojo.SlotsPojo;
+import com.dizitiveit.pms.pojo.VehicleMovementRegisterPojo;
 import com.dizitiveit.pms.pojo.VisitorTagDetailsPojo;
 import com.dizitiveit.pms.service.MyUserDetailsService;
 import com.dizitiveit.pms.service.OtpSenderService;
@@ -91,6 +100,12 @@ public class VisitorTagDetailsController {
 	 
 	 @Autowired
 	 private OtpSenderService otpService;
+	 
+	 @Autowired
+	 private SlotsDao slotsDao;
+	 
+	 @Autowired
+	 private VehicleMovementRegisterDao vehicleMovementRegisterDao;
 	
 	@PostMapping(value="/saveVisitorDetails/{flatNo}")
 	public ResponseEntity<?>  saveVisitorDetails(@PathVariable String flatNo,@RequestBody VisitorTagDetails visitorDetails,@RequestParam(name = "slotNo",required = false) String slotNo)
@@ -98,13 +113,12 @@ public class VisitorTagDetailsController {
 		Users users = userDetailsService.getAuthUser();
 		{
 		Flats flats = flatsDao.findByflatNo(flatNo);
-		 FlatOwners flatOwnersvisitor = flatOwnersDao.findByownersActive(flats.getFlatId(),true);
-		 if(flatOwnersvisitor.getFlatResidencies()==null) {
-		 
-			 visitorDetails.setResidentType("Owner");
+		 FlatOwners flatOwners = flatOwnersDao.findByownersActive(flats.getFlatId(),true);
+		 if(flatOwners.getFlatResidencies() != null) {
+			 visitorDetails.setResidentType("Tenant");
 		 }
 		 else {
-			 visitorDetails.setResidentType("Tenant");
+			 visitorDetails.setResidentType("Owner");
 		 }
 		if(slotNo=="") {
 			System.out.println("in unplanned");
@@ -121,33 +135,19 @@ public class VisitorTagDetailsController {
 			else
 		{
 
-		VisitorParkingSlots visitorParkingSlots = visitorParkingSlotsDao.findBySlotNo(slotNo);
-		System.out.println(slotNo);
-		if(visitorParkingSlots.isSlotOccupied()==true)
-		{
-			Responses responses = responsesDao.findById(50);
-			System.out.println("responseId" + responses.getResponsesId());
-			System.out.println("resName" + responses.getResName());
-			return ResponseEntity.ok(new Responses(responses.getResponsesId(), responses.getResName())); 
-		}
-		else
-		{
-			visitorDetails.setVisitorParkingSlots(visitorParkingSlots);
-			visitorDetails.setType("Unplanned Visitor");
-		visitorParkingSlots.setSlotOccupied(true);
+		visitorDetails.setType("Unplanned Visitor");
 		visitorDetails.setFlats(flats);
 		visitorDetails.setVisitorStatus("PENDING");
 		visitorDetails.setStatus(true);
 		visitorDetails.setCreatedAt(new Date());
-		visitorParkingSlotsDao.save(visitorParkingSlots);	
 		System.out.println(visitorDetails.toString());
 		visitorTagDetailsDao.save(visitorDetails);
 		
-	} 
+	 
 		}
 		
 	    //Users users = usersDao.findByFlats(flats);
-		 FlatOwners flatOwners = flatOwnersDao.findByownersActive(flats.getFlatId(),true);
+		 flatOwners = flatOwnersDao.findByownersActive(flats.getFlatId(),true);
 		 if(flatOwners.getFlatResidencies()==null) {
 			// FlatOwners flatOwnersToken =  flatOwnersDao.findByownersPhone(flatOwners.getPhone(),true);
 			users = usersDao.findByMobile(flatOwners.getPhone());
@@ -186,18 +186,19 @@ public class VisitorTagDetailsController {
 		Users users = userDetailsService.getAuthUser();
 		System.out.println(users.toString());
 		System.out.println(visitorTagDetails.toString());
-		
 		VisitorTagDetails visitorTagDetailsUpdate = visitorTagDetailsDao.findByVisitorId(visitorId);
 		if(visitorTagDetails!=null) 
+		
 		{
 			visitorTagDetailsUpdate.setInTime(new Date());
-			visitorTagDetailsUpdate.setVisitorStatus("ACCEPT");
+			visitorTagDetailsUpdate.setVisitorStatus("ACCEPTED");
 			visitorTagDetailsUpdate.setBrand(visitorTagDetails.getBrand());
 			visitorTagDetailsUpdate.setModel(visitorTagDetails.getModel());
 			visitorTagDetailsUpdate.setVehicleNumber(visitorTagDetails.getVehicleNumber());
 			visitorTagDetailsUpdate.setVehicleType(visitorTagDetails.getVehicleType());
-			VisitorParkingSlots visitorParkingSlots = visitorParkingSlotsDao.findBySlotNo(slotNo);
-			if(visitorParkingSlots.isSlotOccupied()==true)
+			//VisitorParkingSlots visitorParkingSlots = visitorParkingSlotsDao.findBySlotNo(slotNo);
+			Slots slots = slotsDao.findByslotNo(slotNo);
+			if(slots.isFilled()==true)
 			{
 				Responses responses = responsesDao.findById(50);
 				System.out.println("responseId" + responses.getResponsesId());
@@ -206,11 +207,24 @@ public class VisitorTagDetailsController {
 			}
 			else
 			{
-				visitorTagDetailsUpdate.setVisitorParkingSlots(visitorParkingSlots);
-			visitorParkingSlots.setSlotOccupied(true);
-			visitorParkingSlotsDao.save(visitorParkingSlots);	
-			visitorTagDetailsDao.save(visitorTagDetailsUpdate);
+				if(slots.getBillingType()==null)
+				{	
+				visitorTagDetailsUpdate.setSlots(slots);
+				slots.setFilled(true);
+				slots.setAssigned(true);
+				//slots.setBillingType("Visitor");
+				slots.setFlats(visitorTagDetailsUpdate.getFlats());
+				
+			slotsDao.save(slots);
+				}
+				else {
+					visitorTagDetailsUpdate.setSlots(slots);
+					slots.setFilled(true);
+					slots.setFlats(visitorTagDetailsUpdate.getFlats());
+				}
 		} 
+			visitorTagDetailsUpdate.setSlots(slots);
+			visitorTagDetailsDao.save(visitorTagDetailsUpdate);
 		}
 		Responses responses = responsesDao.findById(49);
 		System.out.println("responseId" + responses.getResponsesId());
@@ -223,7 +237,7 @@ public class VisitorTagDetailsController {
 		VisitorTagDetails visitorTagDetailsUpdate = visitorTagDetailsDao.findByVisitorId(visitorId);
 		visitorTagDetailsUpdate.setInTime(new Date());
 		visitorTagDetailsUpdate.setStatus(true);
-		visitorTagDetailsUpdate.setVisitorStatus("ACCEPT");
+		visitorTagDetailsUpdate.setVisitorStatus("ACCEPTED");
 		visitorTagDetailsDao.save(visitorTagDetailsUpdate);
 		Responses responses = responsesDao.findById(49);
 		System.out.println("responseId" + responses.getResponsesId());
@@ -276,19 +290,19 @@ public class VisitorTagDetailsController {
 		if(users.getRoles().equalsIgnoreCase("ROLE_OWNER")||users.getRoles().equalsIgnoreCase("ROLE_TENANT")) 
 		{
 		Flats flats = flatsDao.findByflatNo(flatNo);
-		FlatOwners flatOwnersvisitor = flatOwnersDao.findByownersActive(flats.getFlatId(),true);
-		 if(flatOwnersvisitor.getFlatResidencies()==null) {
-		 
-			 visitorDetails.setResidentType("Owner");
-		 }
-		 else {
-			 visitorDetails.setResidentType("Tenant");
-		 }
 		if(flats!=null)
 		{
+			 FlatOwners flatOwners = flatOwnersDao.findByownersActive(flats.getFlatId(),true);
+			 if(flatOwners.getFlatResidencies()== null) {
+				 visitorDetails.setResidentType("Owner");
+			 }
+			 else {
+				 visitorDetails.setResidentType("Tenant");
+			 }
 		visitorDetails.setFlats(flats);
 		visitorDetails.setType("Planned Visitor");
-		visitorDetails.setVisitorStatus("PENDING");
+		visitorDetails.setVisitorStatus("PROCESSING");
+		visitorDetails.setCreatedAt(new Date());
 		visitorDetails.setStatus(true);
 		System.out.println(visitorDetails.toString());
 		visitorTagDetailsDao.save(visitorDetails);
@@ -302,13 +316,13 @@ public class VisitorTagDetailsController {
 			PushNotificationRequest pushnotificationreq = new PushNotificationRequest();
 			pushnotificationreq.setToken(user.getToken());
 			System.out.println(user.getToken());
-			pushnotificationreq.setTitle("You had a Visitor");
+			pushnotificationreq.setTitle("There is a visitor request from this flat"+""+visitorDetails.getFlats().getFlatNo());
 			pushnotificationreq.setMessage(visitorDetails.getPurpose());
 			pushNotification.sendTokenNotification(pushnotificationreq);
 				}
 			
 			}
-			 FlatOwners flatOwners = flatOwnersDao.findByownersActive(flats.getFlatId(),true);
+			  flatOwners = flatOwnersDao.findByownersActive(flats.getFlatId(),true);
 			 if(flatOwners.getFlatResidencies()==null) {
 				// FlatOwners flatOwnersToken =  flatOwnersDao.findByownersPhone(flatOwners.getPhone(),true);
 				users = usersDao.findByMobile(flatOwners.getPhone());
@@ -326,10 +340,10 @@ public class VisitorTagDetailsController {
 				 DateFormat formatter = new SimpleDateFormat("dd MMMM yyyy");  
 				    String strDate = formatter.format(visitorDetails.getExpectedInTime());  
 				    System.out.println("Date Format with dd MMMM yyyy : "+strDate);  
-				 String message = flatResidencies.getFirstname()+" "+flatResidencies.getLastName()+" "+"has invited you to Block"+" "+flatResidencies.getFlats().getBlock()+" "+flatResidencies.getFlats().getTower()+" "+flatResidencies.getFlats().getFlatNo()+" "+"on"+" "+strDate+" "+"using PMS.Please Use"+" "+visitorDetails.getVisitorId()+" "+"as entry code at the gate";
-				 System.out.println(visitorDetails.getPhoneNumber());
+				 String message = flatResidencies.getFirstname()+" "+flatResidencies.getLastName()+" "+"has invited you to Block"+" "+flatResidencies.getFlats().getBlock()+" "+flatResidencies.getFlats().getTower()+" "+flatResidencies.getFlats().getFlatNo()+" "+"on"+" "+strDate+" "+"using PMS.Please Use"+" "+visitorDetails.getVisitorId()+" "+"as entry code at the gate"; 
 				 otpService.sendSms(visitorDetails.getPhoneNumber(), message);
 			 }
+			 
 		Responses responses = responsesDao.findById(22);
 		System.out.println("responseId" + responses.getResponsesId());
 		System.out.println("resName" + responses.getResName());
@@ -382,9 +396,9 @@ public class VisitorTagDetailsController {
 					visitorDetailsPojo.setOutTime((dfOut.format(visitor.getOutTime())));
 				}
 			 visitorDetailsPojo.setParkingCost(visitor.getParkingCost());
-			 if(visitor.getVisitorParkingSlots()!=null)
+			 if(visitor.getSlots()!=null)
 			 {
-			 visitorDetailsPojo.setParkingSLot(visitor.getVisitorParkingSlots().getSlotNo());
+			 visitorDetailsPojo.setParkingSLot(visitor.getSlots().getSlotNo());
 			 }
 			 visitorDetailsPojo.setPurpose(visitor.getPurpose());
 			 visitorDetailsPojo.setStatus(visitor.isStatus());
@@ -444,15 +458,16 @@ public class VisitorTagDetailsController {
 					visitorDetailsPojo.setOutTime((dfOut.format(visitor.getOutTime())));
 				}
 			 visitorDetailsPojo.setParkingCost(visitor.getParkingCost());
-			 if(visitor.getVisitorParkingSlots()!=null)
+			 if(visitor.getSlots()!=null)
 			 {
-			 visitorDetailsPojo.setParkingSLot(visitor.getVisitorParkingSlots().getSlotNo());
+			 visitorDetailsPojo.setSlotNo(visitor.getSlots().getSlotNo());
 			 }
 			 visitorDetailsPojo.setPurpose(visitor.getPurpose());
 			 visitorDetailsPojo.setStatus(visitor.isStatus());
 			 visitorDetailsPojo.setType(visitor.getType());
 			 visitorDetailsPojo.setVehicleNumber(visitor.getVehicleNumber());
 			 visitorDetailsPojo.setVisitorStatus(visitor.getVisitorStatus());
+			 visitorDetailsPojo.setResidentType(visitor.getResidentType());
 			 listVisitorTagDetailsPojo.add(visitorDetailsPojo);
 		 }
 		HashMap<String, List<VisitorTagDetailsPojo>> response = new HashMap<String,List<VisitorTagDetailsPojo>>();
@@ -494,9 +509,9 @@ public class VisitorTagDetailsController {
 					visitorDetailsPojo.setOutTime((dfOut.format(visitor.getOutTime())));
 				}
 			 visitorDetailsPojo.setParkingCost(visitor.getParkingCost());
-			 if(visitor.getVisitorParkingSlots()!=null)
+			 if(visitor.getSlots()!=null)
 			 {
-			 visitorDetailsPojo.setParkingSLot(visitor.getVisitorParkingSlots().getSlotNo());
+			 visitorDetailsPojo.setParkingSLot(visitor.getSlots().getSlotNo());
 			 }
 			 visitorDetailsPojo.setPurpose(visitor.getPurpose());
 			 visitorDetailsPojo.setStatus(visitor.isStatus());
@@ -510,39 +525,69 @@ public class VisitorTagDetailsController {
 		return ResponseEntity.ok(response);
 	}
 	
+	public static long getDateDiff(Date date1, Date date2, TimeUnit timeUnit) {
+		  long diffInMillies = date2.getTime() - date1.getTime();
+		  
+		  return timeUnit.convert(diffInMillies, TimeUnit.MILLISECONDS); 
+		  }
+	
 	@PostMapping(value="/outVisitorDetails/{visitorId}")
 	public ResponseEntity<?> outVisitorDetails(@PathVariable long visitorId){
 		
 		VisitorTagDetails visitorDetailsout = visitorTagDetailsDao.findByVisitorId(visitorId);
 		if(visitorDetailsout!=null)
 		{
-		if(visitorDetailsout.getVisitorParkingSlots()!=null)
+		if(visitorDetailsout.getSlots()!=null)
 		{
 		visitorDetailsout.setOutTime(new Date());
 		visitorDetailsout.setVisitorStatus("OUT");
 		visitorDetailsout.setStatus(false);
 		visitorDetailsout=visitorTagDetailsDao.save(visitorDetailsout);
-		VisitorParkingSlots visitorParkingSlots = visitorDetailsout.getVisitorParkingSlots();
-		visitorParkingSlots.setSlotOccupied(false);
-		visitorParkingSlotsDao.save(visitorParkingSlots);
-		long difference_In_Time  = visitorDetailsout.getOutTime().getTime() - visitorDetailsout.getInTime().getTime();
-		
-		 long difference_In_Hours   = TimeUnit.MILLISECONDS.toHours(difference_In_Time) % 24; 
-		 if(difference_In_Hours<1)
+		Slots slots = visitorDetailsout.getSlots();
+		if(slots.getBillingType()!=null)
+		{	
+			slots.setFilled(false);
+			slotsDao.save(slots);
+		}
+		else {
+			slots.setFilled(false);
+			slots.setAssigned(false);
+			slots.setFlats(null);
+			slotsDao.save(slots);
+		VisitorTagDetails visitorOut = visitorTagDetailsDao.findByVisitorId(visitorId);
+		long difference_In_Time  = visitorOut.getOutTime().getTime() - visitorOut.getInTime().getTime();
+		System.out.println(visitorOut.getOutTime());
+		System.out.println(visitorOut.getInTime());
+		//long difference_In_Hours   = TimeUnit.MILLISECONDS.toHours(difference_In_Time) % 24; 
+		// long difference_In_Hours = (difference_In_Time / (1000*60*60)) % 24; 
+		  long hours = getDateDiff (visitorOut.getInTime(), visitorOut.getOutTime(), TimeUnit.HOURS);
+		  if(visitorOut.getSlots().getBillingType()==null)
+		  {
+		 if(hours>=12) {
+			 System.out.println("in if condition");
+			 long diff_In_Days = Math.abs(visitorOut.getOutTime().getTime() - visitorOut.getInTime().getTime());
+			 long diff = TimeUnit.DAYS.convert(diff_In_Days, TimeUnit.MILLISECONDS);
+			 System.out.println(diff);
+			 double dayCost = 500;
+			 double cost= diff* dayCost;
+			// System.out.println(cost);
+			 visitorDetailsout.setParkingCost(cost);
+			visitorTagDetailsDao.save(visitorDetailsout);
+		 }
+		 else if(hours>=3)
 		 {
-			 difference_In_Hours=1;
+			 double actualCost = 50;	 
+			 double cost= hours* actualCost;
+			 visitorDetailsout.setParkingCost(cost);
+			visitorTagDetailsDao.save(visitorDetailsout);
 		 }
 		 
-		 double cost= difference_In_Hours* visitorDetailsout.getVisitorParkingSlots().getSlotCostPerHour();
-		 System.out.println(cost);
-		 visitorDetailsout.setParkingCost(cost);
-		visitorTagDetailsDao.save(visitorDetailsout);
-		//long diff = visitorDetailsout.getOutTime().getHours()- visitorDetailsout.getInTime().getHours();
-		System.out.println(difference_In_Hours);
-		Responses responses = responsesDao.findById(23);
-		System.out.println("responseId" + responses.getResponsesId());
-		System.out.println("resName" + responses.getResName());
-		return ResponseEntity.ok(new Responses(responses.getResponsesId(), responses.getResName())); 
+		}
+		}
+		  Responses responses = responsesDao.findById(23);
+			System.out.println("responseId" + responses.getResponsesId());
+			System.out.println("resName" + responses.getResName());
+			return ResponseEntity.ok(new Responses(responses.getResponsesId(), responses.getResName())); 
 		}
 		else {
 			visitorDetailsout.setOutTime(new Date());
@@ -577,7 +622,7 @@ public class VisitorTagDetailsController {
 		Date date = new Date();
 		date=DateUtils.addMinutes(date, -10);
 		 System.out.println(date);
-		  List<VisitorTagDetails>list= visitorTagDetailsDao.findAllVisitorsStatus("PENDING");
+		  List<VisitorTagDetails>list= visitorTagDetailsDao.getAllVisitorsStatus("PENDING","Unplanned Visitor");
 		  for(int i=0;i<list.size();i++)
 			{
 			  
@@ -586,32 +631,94 @@ public class VisitorTagDetailsController {
 				 VisitorTagDetails visitorTagDetails=list.get(i);
 				 visitorTagDetails.setVisitorStatus("NOTANSWERED");
 				 visitorTagDetailsDao.save(visitorTagDetails);
+					List<SecurityLoginDetails> listSecurityLoginDetails = securityLoginDetailsDao.findByPurpose("IN");
+					List<Users> userslist = usersDao.findByRoles("ROLE_SECURITY", true);
+				for(SecurityLoginDetails securityLoginDetails : listSecurityLoginDetails)
+				{
+					BuildingSecurity buildingSecurity = securityLoginDetails.getBuildingSecurity();
+					Users user = usersDao.findByMobile(buildingSecurity.getMobile());
+					if(user.getToken()!=null) {
+				PushNotificationRequest pushnotificationreq = new PushNotificationRequest();
+				pushnotificationreq.setToken(user.getToken());
+				System.out.println(user.getToken());
+				pushnotificationreq.setTitle(visitorTagDetails.getFlats().getFlatNo()+""+"Request has been"+visitorTagDetails.getVisitorStatus());
+				pushnotificationreq.setMessage(visitorTagDetails.getPurpose());
+				pushNotification.sendTokenNotification(pushnotificationreq);
+					}
+				}
+					}
+			 
 			 }
 			  
-			}
-
 	}
 	
 	@PostMapping(value="/updateStatus/{visitorId}/{visitorStatus}")
-	public ResponseEntity<?> updateStatus(@PathVariable long visitorId,@PathVariable String visitorStatus){
+	public ResponseEntity<?> updateStatus(@PathVariable long visitorId,@PathVariable String visitorStatus)
+	{
 		Users users = userDetailsService.getAuthUser();
 		VisitorTagDetails visitorDetails =  visitorTagDetailsDao.findByVisitorId(visitorId);
 		//Users usersDetails = usersDao.findByMobile(users.getMobile());
 		if(visitorStatus.equalsIgnoreCase("ACCEPT"))
 		{
 		visitorDetails.setVisitorStatus(visitorStatus);
-		visitorDetails.setInTime(new Date());
+		//visitorDetails.setInTime(new Date());
 		visitorTagDetailsDao.save(visitorDetails);
+		 String message = "Please use this Id as"+" "+visitorDetails.getVisitorId()+" "+" exist code at the gate"; 
+		 otpService.sendSms(visitorDetails.getPhoneNumber(), message);
 		}
 		else {
 			visitorDetails.setVisitorStatus(visitorStatus);
 			visitorTagDetailsDao.save(visitorDetails);
 		}
+		List<SecurityLoginDetails> listSecurityLoginDetails = securityLoginDetailsDao.findByPurpose("IN");
+		List<Users> userslist = usersDao.findByRoles("ROLE_SECURITY", true);
+	for(SecurityLoginDetails securityLoginDetails : listSecurityLoginDetails)
+	{
+		BuildingSecurity buildingSecurity = securityLoginDetails.getBuildingSecurity();
+		Users user = usersDao.findByMobile(buildingSecurity.getMobile());
+		if(user.getToken()!=null) {
+	PushNotificationRequest pushnotificationreq = new PushNotificationRequest();
+	pushnotificationreq.setToken(user.getToken());
+	System.out.println(user.getToken());
+	pushnotificationreq.setTitle(visitorDetails.getFlats().getFlatNo()+""+"Request has been"+visitorDetails.getVisitorStatus());
+	pushnotificationreq.setMessage(visitorDetails.getPurpose());
+	pushNotification.sendTokenNotification(pushnotificationreq);
+		}
+	
+	}
 		Responses responses = responsesDao.findById(52);
 		System.out.println("responseId" + responses.getResponsesId());
 		System.out.println("resName" + responses.getResName());
-		return ResponseEntity.ok(new Responses(responses.getResponsesId(), responses.getResName())); 
+		return ResponseEntity.ok(new Responses(responses.getResponsesId(), responses.getResName()));
+		
 	}
+	
+	@PostMapping(value="changeStatus/{visitorId}")
+	public ResponseEntity<?> changeStatus(@PathVariable long visitorId){
+		VisitorTagDetails visitorDetails =  visitorTagDetailsDao.findByVisitorId(visitorId);
+		if(visitorDetails.getVisitorStatus().equalsIgnoreCase("REJECT")) {
+			visitorDetails.setVisitorStatus("REJECTED");
+			visitorTagDetailsDao.save(visitorDetails);
+		}
+		else if(visitorDetails.getVisitorStatus().equalsIgnoreCase("NOT AT HOME"))
+		{
+			visitorDetails.setVisitorStatus("NOT AT HOUSE");
+			visitorTagDetailsDao.save(visitorDetails);
+		}
+		else if(visitorDetails.getVisitorStatus().equalsIgnoreCase("NOTANSWERED")){
+			visitorDetails.setVisitorStatus("NOTANSWER");
+			visitorTagDetailsDao.save(visitorDetails);
+		}
+		else if(visitorDetails.getVisitorStatus().equalsIgnoreCase("PROCESSING")) {
+			visitorDetails.setVisitorStatus("PENDING");
+			visitorTagDetailsDao.save(visitorDetails);
+		}
+		Responses responses = responsesDao.findById(73);
+		System.out.println("responseId" + responses.getResponsesId());
+		System.out.println("resName" + responses.getResName());
+		return ResponseEntity.ok(new Responses(responses.getResponsesId(), responses.getResName()));
+	}
+	
 	
 	@GetMapping(value="getVisitorDetailsByflatNo/{flatNo}")
 	public ResponseEntity<?> getVisitorDetailsByflatNo(@PathVariable String flatNo){
@@ -629,7 +736,6 @@ public class VisitorTagDetailsController {
 			 visitorDetailsPojo.setModel(visitor.getModel());
 			 visitorDetailsPojo.setPhoneNumber(visitor.getPhoneNumber());
 			 visitorDetailsPojo.setVehicleType(visitor.getVehicleType());
-			 visitorDetailsPojo.setResidentType(visitor.getResidentType());
 			 DateFormat dfExpectedIn = new SimpleDateFormat("dd-MM-yy'T'HH:mm:ss");
 				if(visitor.getExpectedInTime()!=null) {
 					visitorDetailsPojo.setExpectedInTime(dfExpectedIn.format(visitor.getExpectedInTime()));
@@ -655,6 +761,7 @@ public class VisitorTagDetailsController {
 				 visitorDetailsPojo.setType(visitor.getType());
 				 visitorDetailsPojo.setVehicleNumber(visitor.getVehicleNumber());
 				 visitorDetailsPojo.setVisitorStatus(visitor.getVisitorStatus());
+				 visitorDetailsPojo.setResidentType(visitor.getResidentType());
 				 listVisitorTagDetailsPojo.add(visitorDetailsPojo);
 		}
 		HashMap<String, List<VisitorTagDetailsPojo>> response = new HashMap<String,List<VisitorTagDetailsPojo>>();
@@ -709,13 +816,13 @@ public class VisitorTagDetailsController {
               return ResponseEntity.ok(response);
      }
      
-     //@GetMapping(value="/getVisitorsByType/{type}")
-    // public ResponseEntity<?>  getVisitorsByType(@PathVariable String type){
-    	// List<VisitorTagDetails>listVisitorTagDetails= visitorTagDetailsDao.getVisitorDetailsBytype(type,true);
-    	// HashMap<String, List<VisitorTagDetails>> response = new HashMap<String,List<VisitorTagDetails>>();
-    	 //response.put("listVisitorTagDetails",listVisitorTagDetails);
- 		//return ResponseEntity.ok(response);
-     //}
+     @GetMapping(value="/getVisitorsByType/{type}")
+     public ResponseEntity<?>  getVisitorsByType(@PathVariable String type){
+    	 List<VisitorTagDetails>listVisitorTagDetails= visitorTagDetailsDao.getVisitorDetailsBytype(type);
+    	 HashMap<String, List<VisitorTagDetails>> response = new HashMap<String,List<VisitorTagDetails>>();
+    	 response.put("listVisitorTagDetails",listVisitorTagDetails);
+ 		return ResponseEntity.ok(response);
+     }
      
      @GetMapping("/getVisitorDetailsByVisitorId/{visitorId}")
      public ResponseEntity<?> getVisitorDetailsByVisitorId(@PathVariable long visitorId){
@@ -747,9 +854,9 @@ public class VisitorTagDetailsController {
 					visitorDetailsPojo.setOutTime((dfOut.format(listVisitorTagDetails.getOutTime())));
 				}
 			 visitorDetailsPojo.setParkingCost(listVisitorTagDetails.getParkingCost());
-			 if(listVisitorTagDetails.getVisitorParkingSlots()!=null)
+			 if(listVisitorTagDetails.getSlots()!=null)
 			 {
-			 visitorDetailsPojo.setParkingSLot(listVisitorTagDetails.getVisitorParkingSlots().getSlotNo());
+			 visitorDetailsPojo.setParkingSLot(listVisitorTagDetails.getSlots().getSlotNo());
 			 }
 			 visitorDetailsPojo.setPurpose(listVisitorTagDetails.getPurpose());
 			 visitorDetailsPojo.setStatus(listVisitorTagDetails.isStatus());
@@ -765,7 +872,7 @@ public class VisitorTagDetailsController {
      @GetMapping("/activeVisitorList")
      public ResponseEntity<?> activeVisitorList(){
     	 List<VisitorTagDetailsPojo> listVisitorTagDetailsPojo = new ArrayList();
- 		List<VisitorTagDetails> listVisitorTagDetails = visitorTagDetailsDao.findAllVisitorsStatus("ACCEPT");
+ 		List<VisitorTagDetails> listVisitorTagDetails = visitorTagDetailsDao.getAllVisitorsStatus("ACCEPT","");
  		 for(VisitorTagDetails visitor : listVisitorTagDetails) {
  			 VisitorTagDetailsPojo visitorDetailsPojo = new VisitorTagDetailsPojo();
  			 visitorDetailsPojo.setVisitorId(visitor.getVisitorId());
@@ -794,9 +901,9 @@ public class VisitorTagDetailsController {
  					visitorDetailsPojo.setOutTime((dfOut.format(visitor.getOutTime())));
  				}
  			 visitorDetailsPojo.setParkingCost(visitor.getParkingCost());
- 			 if(visitor.getVisitorParkingSlots()!=null)
+ 			 if(visitor.getSlots()!=null)
  			 {
- 			 visitorDetailsPojo.setParkingSLot(visitor.getVisitorParkingSlots().getSlotNo());
+ 			 visitorDetailsPojo.setParkingSLot(visitor.getSlots().getSlotNo());
  			 }
  			 visitorDetailsPojo.setPurpose(visitor.getPurpose());
  			 visitorDetailsPojo.setStatus(visitor.isStatus());
@@ -847,9 +954,9 @@ public class VisitorTagDetailsController {
  					visitorDetailsPojo.setOutTime((dfOut.format(visitor.getOutTime())));
  				}
     			 visitorDetailsPojo.setParkingCost(visitor.getParkingCost());
-    			 if(visitor.getVisitorParkingSlots()!=null)
+    			 if(visitor.getSlots()!=null)
     			 {
-    			 visitorDetailsPojo.setParkingSLot(visitor.getVisitorParkingSlots().getSlotNo());
+    			 visitorDetailsPojo.setParkingSLot(visitor.getSlots().getSlotNo());
     			 }
     			 visitorDetailsPojo.setPurpose(visitor.getPurpose());
     			 visitorDetailsPojo.setStatus(visitor.isStatus());
@@ -864,8 +971,8 @@ public class VisitorTagDetailsController {
      		return ResponseEntity.ok(response);
  		}
     	 else if(type.equalsIgnoreCase("flatNo")) {
-    		
-    	     Flats flats = flatsDao.findByflatNo(value);
+    		 String flatNo= value;  
+    	     Flats flats = flatsDao.findByflatNo(flatNo);
         	 List<VisitorTagDetails>listVisitorTagDetails= visitorTagDetailsDao.getVisitorDetailsByflatNo(flats.getFlatId(),true);
         	 
         	 for(VisitorTagDetails visitor : listVisitorTagDetails) {
@@ -896,16 +1003,15 @@ public class VisitorTagDetailsController {
   					visitorDetailsPojo.setOutTime((dfOut.format(visitor.getOutTime())));
   				}
     			 visitorDetailsPojo.setParkingCost(visitor.getParkingCost());
-    			 if(visitor.getVisitorParkingSlots()!=null)
+    			 if(visitor.getSlots()!=null)
     			 {
-    			 visitorDetailsPojo.setParkingSLot(visitor.getVisitorParkingSlots().getSlotNo());
+    			 visitorDetailsPojo.setParkingSLot(visitor.getSlots().getSlotNo());
     			 }
     			 visitorDetailsPojo.setPurpose(visitor.getPurpose());
     			 visitorDetailsPojo.setStatus(visitor.isStatus());
     			 visitorDetailsPojo.setType(visitor.getType());
     			 visitorDetailsPojo.setVehicleNumber(visitor.getVehicleNumber());
     			 visitorDetailsPojo.setVisitorStatus(visitor.getVisitorStatus());
-    			 visitorDetailsPojo.setResidentType(visitor.getResidentType());
     			 listVisitorTagDetailsPojo.add(visitorDetailsPojo);
     		 }
     		 
@@ -920,11 +1026,8 @@ public class VisitorTagDetailsController {
     		 Date date;
     		 try {
 				date = new SimpleDateFormat("yyyy-MM-dd").parse(value);
-				Date dateTomorrow=DateUtils.addHours(date,23);
-				dateTomorrow=DateUtils.addMinutes(dateTomorrow,59);
-				   dateTomorrow=DateUtils.addSeconds(dateTomorrow, 59);
-				System.out.println(dateTomorrow);
-				List<VisitorTagDetails> listVisitorTagDetails = visitorTagDetailsDao.findByVisitorDate(dateTomorrow,true);
+				System.out.println(date);
+				List<VisitorTagDetails> listVisitorTagDetails = visitorTagDetailsDao.findByVisitorDate(date,true);
 				for(VisitorTagDetails visitor : listVisitorTagDetails) {
 	    			 VisitorTagDetailsPojo visitorDetailsPojo = new VisitorTagDetailsPojo();
 	    			 visitorDetailsPojo.setVisitorId(visitor.getVisitorId());
@@ -954,9 +1057,9 @@ public class VisitorTagDetailsController {
 	  					visitorDetailsPojo.setOutTime((dfOut.format(visitor.getOutTime())));
 	  				}
 	    			 visitorDetailsPojo.setParkingCost(visitor.getParkingCost());
-	    			 if(visitor.getVisitorParkingSlots()!=null)
+	    			 if(visitor.getSlots()!=null)
 	    			 {
-	    			 visitorDetailsPojo.setParkingSLot(visitor.getVisitorParkingSlots().getSlotNo());
+	    			 visitorDetailsPojo.setParkingSLot(visitor.getSlots().getSlotNo());
 	    			 }
 	    			 visitorDetailsPojo.setPurpose(visitor.getPurpose());
 	    			 visitorDetailsPojo.setStatus(visitor.isStatus());
@@ -1005,9 +1108,9 @@ public class VisitorTagDetailsController {
 					visitorDetailsPojo.setOutTime((dfOut.format(visitor.getOutTime())));
 				}
    			 visitorDetailsPojo.setParkingCost(visitor.getParkingCost());
-   			 if(visitor.getVisitorParkingSlots()!=null)
+   			 if(visitor.getSlots()!=null)
 			 {
-			 visitorDetailsPojo.setParkingSLot(visitor.getVisitorParkingSlots().getSlotNo());
+			 visitorDetailsPojo.setParkingSLot(visitor.getSlots().getSlotNo());
 			 }
    			 visitorDetailsPojo.setPurpose(visitor.getPurpose());
    			 visitorDetailsPojo.setStatus(visitor.isStatus());
@@ -1117,8 +1220,250 @@ public class VisitorTagDetailsController {
  		}
      
  	
- 	
-     
+ 	@GetMapping("/currentVehiclesByFlat/{flatNo}")
+ 	public ResponseEntity<?> currentVehiclesByFlat(@PathVariable String flatNo)
+ 	{
+ 		Flats flats = flatsDao.findByflatNo(flatNo);
+ 		List<Slots> slotsList = slotsDao.getByflatNo(flats.getFlatId(),"Flat");
+ 		FlatVisitorSlotPojo flatVisitorSlotPojo = new FlatVisitorSlotPojo();
+ 		List<FlatSlotsPojo> flatSlotsPojoList = new ArrayList();
+ 		for(Slots slot : slotsList) 
+ 		{
+ 			List<VehicleMovementRegister> vehicleMovementRegisterList = vehicleMovementRegisterDao.findByVehicleDetails(slot.getSlotsId());
+ 			List<VehicleMovementRegisterPojo> vehicleMovementList = new ArrayList();
+ 			for(VehicleMovementRegister vehicle:vehicleMovementRegisterList)
+ 			{
+ 				VehicleMovementRegisterPojo vehicleMovement = new VehicleMovementRegisterPojo();
+ 				vehicleMovement.setFlatNo(vehicle.getVehicleDetails().getFlats().getFlatNo());
+ 				vehicleMovement.setRegNo(vehicle.getVehicleDetails().getRegNo());
+ 				vehicleMovement.setSlotNo(vehicle.getSlots().getSlotNo());
+ 				 DateFormat dfIn = new SimpleDateFormat("yyyy-MM-dd  HH:mm:ss");
+ 	   			if(vehicle.getVehicleIn()!=null) {
+ 	   			vehicleMovement.setVehicleIn((dfIn.format(vehicle.getVehicleIn())));
+ 					}
+ 	   		 DateFormat dfOut = new SimpleDateFormat("yyyy-MM-dd  HH:mm:ss");
+ 	   		if(vehicle.getVehicleOut()!=null) {
+ 	   			vehicleMovement.setVehicleOut((dfOut.format(vehicle.getVehicleOut())));
+ 					}
+ 				
+ 				vehicleMovement.setVehiclemovementId(vehicle.getVehiclemovementId());
+ 				vehicleMovementList.add(vehicleMovement);
+ 				
+ 			}
+ 			
+ 			FlatSlotsPojo flatsPojo = new FlatSlotsPojo();
+ 			flatsPojo.setVehicleMovementRegisterPojo(vehicleMovementList);
 
+ 			
+ 			List<VisitorTagDetails> vistorList = visitorTagDetailsDao.getByslot(slot.getSlotsId());
+ 			List<VisitorTagDetailsPojo> visitorListPojo = new ArrayList();
+ 			for( VisitorTagDetails visitor :  vistorList)
+ 			{
+ 				VisitorTagDetailsPojo visitorPojo = new VisitorTagDetailsPojo();
+ 				visitorPojo.setBlockNumber(visitor.getBlockNumber());
+ 				visitorPojo.setBrand(visitor.getBrand());
+ 				DateFormat dfExpectedIn = new SimpleDateFormat("yyyy-MM-dd  HH:mm:ss");
+				if(visitor.getExpectedInTime()!=null) {
+					visitorPojo.setExpectedInTime((dfExpectedIn.format(visitor.getExpectedInTime())));
+				}
+				DateFormat dfExpectedOut= new SimpleDateFormat("yyyy-MM-dd  HH:mm:ss");
+				if(visitor.getExpectedOutTime()!=null) {
+					visitorPojo.setExpectedOutTime((dfExpectedOut.format(visitor.getExpectedOutTime())));
+				}
+ 				visitorPojo.setFlatNo(flatNo);
+ 				visitorPojo.setModel(visitor.getModel());
+ 				 DateFormat dfIn = new SimpleDateFormat("yyyy-MM-dd  HH:mm:ss");
+ 				if(visitor.getInTime()!=null) {
+ 					visitorPojo.setInTime((dfIn.format(visitor.getInTime())));
+				}
+	
+				DateFormat dfOut = new SimpleDateFormat("yyyy-MM-dd  HH:mm:ss");
+				if(visitor.getOutTime()!=null) {
+					visitorPojo.setOutTime((dfOut.format(visitor.getOutTime())));
+				}
+ 				visitorPojo.setParkingCost(visitor.getParkingCost());
+ 				visitorPojo.setSlotNo(visitor.getSlots().getSlotNo());
+ 				visitorPojo.setPhoneNumber(visitor.getPhoneNumber());
+ 				visitorPojo.setPurpose(visitor.getPurpose());
+ 				visitorPojo.setResidentType(visitor.getResidentType());
+ 				visitorPojo.setVehicleNumber(visitor.getVehicleNumber());
+ 				visitorPojo.setVehicleType(visitor.getVehicleType());
+ 				visitorPojo.setVisitorId(visitor.getVisitorId());
+ 				visitorPojo.setVisitorName(visitor.getVisitorName());
+ 				visitorPojo.setVisitorStatus(visitor.getVisitorStatus());
+ 				
+ 				visitorListPojo.add(visitorPojo);
+ 				
+ 			}
+ 			
+ 			flatsPojo.setVisitorTagDetailsPojo(visitorListPojo);
+ 			flatSlotsPojoList.add(flatsPojo);
+ 		}
+ 		flatVisitorSlotPojo.setFlatsPojo(flatSlotsPojoList);
+ 		
+ 		List<Slots> slotsVisitorList = slotsDao.getByflatNo(flats.getFlatId(),"Visitor");
+ 		//System.out.println(slotsVisitorList.size());
+ 		//System.out.println(flats.getFlatId());
+ 		for(Slots slot : slotsVisitorList) 
+ 		{
+ 			List<VehicleMovementRegister> vehicleMovementRegisterList = vehicleMovementRegisterDao.findByVehicleDetails(slot.getSlotsId());
+ 			//System.out.println(slot.getSlotsId());
+ 			//System.out.println(vehicleMovementRegisterList.size());
+ 			List<VehicleMovementRegisterPojo> vehicleMovementList = new ArrayList();
+ 			for(VehicleMovementRegister vehicle:vehicleMovementRegisterList)
+ 			{
+ 				VehicleMovementRegisterPojo vehicleMovement = new VehicleMovementRegisterPojo();
+ 				vehicleMovement.setFlatNo(vehicle.getVehicleDetails().getFlats().getFlatNo());
+ 				vehicleMovement.setRegNo(vehicle.getVehicleDetails().getRegNo());
+ 				vehicleMovement.setSlotNo(vehicle.getSlots().getSlotNo());
+ 				 DateFormat dfIn = new SimpleDateFormat("yyyy-MM-dd  HH:mm:ss");
+ 	   			if(vehicle.getVehicleIn()!=null) {
+ 	   			vehicleMovement.setVehicleIn((dfIn.format(vehicle.getVehicleIn())));
+ 					}
+ 	   		 DateFormat dfOut = new SimpleDateFormat("yyyy-MM-dd  HH:mm:ss");
+ 	   		if(vehicle.getVehicleOut()!=null) {
+ 	   			vehicleMovement.setVehicleOut((dfOut.format(vehicle.getVehicleOut())));
+ 					}
+ 				
+ 				vehicleMovement.setVehiclemovementId(vehicle.getVehiclemovementId());
+ 				vehicleMovementList.add(vehicleMovement);
+ 				System.out.println(vehicleMovementList.size());
+ 			}
+ 			
+ 			FlatSlotsPojo flatsPojo = new FlatSlotsPojo();
+ 			flatsPojo.setVehicleMovementRegisterPojo(vehicleMovementList);
+
+ 			
+ 			List<VisitorTagDetails> vistorList = visitorTagDetailsDao.getByslot(slot.getSlotsId());
+ 			List<VisitorTagDetailsPojo> visitorListPojo = new ArrayList();
+ 			for( VisitorTagDetails visitor :  vistorList)
+ 			{
+ 				VisitorTagDetailsPojo visitorPojo = new VisitorTagDetailsPojo();
+ 				visitorPojo.setBlockNumber(visitor.getBlockNumber());
+ 				visitorPojo.setBrand(visitor.getBrand());
+ 				DateFormat dfExpectedIn = new SimpleDateFormat("yyyy-MM-dd  HH:mm:ss");
+				if(visitor.getExpectedInTime()!=null) {
+					visitorPojo.setExpectedInTime((dfExpectedIn.format(visitor.getExpectedInTime())));
+				}
+				DateFormat dfExpectedOut= new SimpleDateFormat("yyyy-MM-dd  HH:mm:ss");
+				if(visitor.getExpectedOutTime()!=null) {
+					visitorPojo.setExpectedOutTime((dfExpectedOut.format(visitor.getExpectedOutTime())));
+				}
+ 				visitorPojo.setFlatNo(flatNo);
+ 				visitorPojo.setModel(visitor.getModel());
+ 				 DateFormat dfIn = new SimpleDateFormat("yyyy-MM-dd  HH:mm:ss");
+ 				if(visitor.getInTime()!=null) {
+ 					visitorPojo.setInTime((dfIn.format(visitor.getInTime())));
+				}
+	
+				DateFormat dfOut = new SimpleDateFormat("yyyy-MM-dd  HH:mm:ss");
+				if(visitor.getOutTime()!=null) {
+					visitorPojo.setOutTime((dfOut.format(visitor.getOutTime())));
+				}
+ 				visitorPojo.setParkingCost(visitor.getParkingCost());
+ 				visitorPojo.setSlotNo(visitor.getSlots().getSlotNo());
+ 				visitorPojo.setPhoneNumber(visitor.getPhoneNumber());
+ 				visitorPojo.setPurpose(visitor.getPurpose());
+ 				visitorPojo.setResidentType(visitor.getResidentType());
+ 				visitorPojo.setVehicleNumber(visitor.getVehicleNumber());
+ 				visitorPojo.setVehicleType(visitor.getVehicleType());
+ 				visitorPojo.setVisitorId(visitor.getVisitorId());
+ 				visitorPojo.setVisitorName(visitor.getVisitorName());
+ 				visitorPojo.setVisitorStatus(visitor.getVisitorStatus());
+ 				
+ 				visitorListPojo.add(visitorPojo);
+ 				
+ 			}
+ 			flatsPojo.setVisitorTagDetailsPojo(visitorListPojo);
+ 			flatSlotsPojoList.add(flatsPojo);
+ 	
+ 	}
+ 		
+ 		flatVisitorSlotPojo.setVisitorPojo(flatSlotsPojoList);
+ 		
+ 		 HashMap<String,FlatVisitorSlotPojo> response = new HashMap<String,FlatVisitorSlotPojo>();
+		 response.put("slots",flatVisitorSlotPojo);
+		return ResponseEntity.ok(response);
+ 	}     
+ 	
+ 	@GetMapping("/getVisitorSlots")
+ 	public ResponseEntity<?> getVisitorSlots(){			
+ 		List<Slots>	emptySlotsList = slotsDao.findBySlots(false);
+ 		List<SlotsPojo> slotsPojoList = new ArrayList();
+ 		for(Slots slot : emptySlotsList) 
+ 		{
+ 			SlotsPojo slotsPojo = new SlotsPojo();
+ 			slotsPojo.setBlock(slot.getBlock());
+ 			if(slot.getFlats()!=null)
+ 			{	
+ 			slotsPojo.setFlatNo(slot.getFlats().getFlatNo());
+ 			}
+ 			slotsPojo.setOccupied(slot.isOccupied());
+ 			slotsPojo.setSlotNo(slot.getSlotNo());
+ 			slotsPojo.setVehicleType(slot.getVehicleType());
+ 			slotsPojo.setFilled(slot.isFilled());
+ 			slotsPojo.setAssigned(slot.isAssigned());
+ 			slotsPojo.setBillingType(slot.getBillingType());
+ 			slotsPojo.setFloor(slot.getFloor());
+ 			slotsPojoList.add(slotsPojo);
+ 		}
+ 		HashMap<String,List<SlotsPojo>> response = new HashMap<String,List<SlotsPojo>>();
+		 response.put("listOfParkingSlots",slotsPojoList);
+		return ResponseEntity.ok(response);
+ 	}
+ 	
+	  @GetMapping("/getVisitorsInvoiceList/{flatNo}/{month}/{year}")
+	  public ResponseEntity<?> getVisitorsInvoiceList(@PathVariable String flatNo,@PathVariable long month,@PathVariable long year ) {
+		    Flats flats = flatsDao.findByflatNo(flatNo);
+			List<VisitorTagDetails> vistorList = visitorTagDetailsDao.getVisitorInvoice(month, year,  flats.getFlatId(),"OUT");
+ 			List<VisitorTagDetailsPojo> visitorListPojo = new ArrayList();
+ 			for( VisitorTagDetails visitor :  vistorList)
+ 			{
+ 				VisitorTagDetailsPojo visitorPojo = new VisitorTagDetailsPojo();
+ 				visitorPojo.setBlockNumber(visitor.getBlockNumber());
+ 				visitorPojo.setBrand(visitor.getBrand());
+ 				DateFormat dfExpectedIn = new SimpleDateFormat("yyyy-MM-dd  HH:mm:ss");
+				if(visitor.getExpectedInTime()!=null) {
+					visitorPojo.setExpectedInTime((dfExpectedIn.format(visitor.getExpectedInTime())));
+				}
+				DateFormat dfExpectedOut= new SimpleDateFormat("yyyy-MM-dd  HH:mm:ss");
+				if(visitor.getExpectedOutTime()!=null) {
+					visitorPojo.setExpectedOutTime((dfExpectedOut.format(visitor.getExpectedOutTime())));
+				}
+ 				visitorPojo.setFlatNo(flatNo);
+ 				visitorPojo.setModel(visitor.getModel());
+ 				 DateFormat dfIn = new SimpleDateFormat("yyyy-MM-dd  HH:mm:ss");
+ 				if(visitor.getInTime()!=null) {
+ 					visitorPojo.setInTime((dfIn.format(visitor.getInTime())));
+				}
+	
+				DateFormat dfOut = new SimpleDateFormat("yyyy-MM-dd  HH:mm:ss");
+				if(visitor.getOutTime()!=null) {
+					visitorPojo.setOutTime((dfOut.format(visitor.getOutTime())));
+				}
+ 				visitorPojo.setParkingCost(visitor.getParkingCost());
+ 				if(visitor.getSlots()!=null)
+ 				{	
+ 				visitorPojo.setSlotNo(visitor.getSlots().getSlotNo());
+ 				}
+ 				visitorPojo.setPhoneNumber(visitor.getPhoneNumber());
+ 				visitorPojo.setPurpose(visitor.getPurpose());
+ 				visitorPojo.setResidentType(visitor.getResidentType());
+ 				visitorPojo.setVehicleNumber(visitor.getVehicleNumber());
+ 				visitorPojo.setVehicleType(visitor.getVehicleType());
+ 				visitorPojo.setVisitorId(visitor.getVisitorId());
+ 				visitorPojo.setVisitorName(visitor.getVisitorName());
+ 				visitorPojo.setVisitorStatus(visitor.getVisitorStatus());
+ 				visitorPojo.setType(visitor.getType());
+ 				visitorListPojo.add(visitorPojo);
+ 
+ 		}	
+ 			 HashMap<String, List<VisitorTagDetailsPojo>> response = new HashMap<String,List<VisitorTagDetailsPojo>>();
+			 response.put("visitorListPojo",visitorListPojo);
+			return ResponseEntity.ok(response);
+	  }
+	  
+		
+		
+		 
 }	
-     

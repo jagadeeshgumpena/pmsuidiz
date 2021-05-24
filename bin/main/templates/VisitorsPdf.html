@@ -1,0 +1,74 @@
+<!doctype html>
+<html lang="en" xmlns:th="http://www.thymeleaf.org">
+<head>
+    <meta charset="UTF-8">
+    <meta content="width=device-width, user-scalable=no, initial-scale=1.0, maximum-scale=1.0, minimum-scale=1.0"
+          name="viewport">
+    <meta content="ie=edge" http-equiv="X-UA-Compatible">
+    <title>Spring Boot - Thymeleaf</title>
+   
+    
+<style type="text/css">
+</style>
+</head>
+
+<body class="flex items-center justify-center h-screen">
+
+<table
+          border="1"
+          width="90%"
+          style="border-collapse: collapse;margin:10px auto"
+          class="tableDeatails"
+          id="customers"
+        >
+        <tr>
+            <td colspan="12"><h3>VISITORS OF THIS MONTH</h3></td>
+          </tr>
+          <tr>
+            <th colspan="1">Visitor Id</th>
+            <th colspan="1">Visitor Name</th>
+           <!--  <th colspan="1">Flat Number</th>
+             <th colspan="1">Block Number</th> -->
+            <th colspan="1">Phone Number</th>
+            <th colspan="1">Vehicle Number</th>
+            <th colspan="1">Vehicle Type</th>
+           <!--  <th colspan="1">Expected InTime</th>
+            <th colspan="1">Expected OutTime</th> -->
+            <th colspan="1">Actual InTime</th>
+            <th colspan="1">Actual OutTime</th>
+            <th colspan="1">Status</th>
+            <th colspan="1">Slot No</th>
+             <th colspan="1">visitor Type</th>
+             <th colspan="1">Parking Cost</th>     
+            <!-- <td rowspan="2"><v-btn  @click="getuser(user)">go</v-btn></td> -->
+          </tr>
+          <tr th:each="visitor : ${visitorListPojo}">
+                                        <td colspan="1" th:text="${visitor.visitorId}"></td>
+                                        <td colspan="1" th:text="${visitor.visitorName}"></td>
+                                       <!--  <td colspan="1" th:text="${visitor.flatNo}"></td>
+                                        <td colspan="1" th:text="${visitor.blockNumber}"></td> -->
+                                        <td colspan="1" th:text="${visitor.phoneNumber}"></td>
+                                         <td colspan="1" th:text="${visitor.vehicleNumber}"></td>
+                                          <td colspan="1" th:text="${visitor.vehicleType}"></td>
+                                          <!--  <td colspan="1" th:text="${visitor.ExpectedInTime}"></td>
+                                            <td colspan="1" th:text="${visitor.ExpectedOutTime}"></td> -->
+                                             <td colspan="1" th:text="${visitor.inTime}"></td>
+                                              <td colspan="1" th:text="${visitor.outTime}"></td>
+                                               <td colspan="1" th:text="${visitor.visitorStatus}"></td>
+                                                <td colspan="1" th:text="${visitor.slotNo}"></td>
+                                                 <td colspan="1" th:text="${visitor.type}"></td>
+                                                 <td colspan="1" th:text="${visitor.parkingCost}"></td>
+                                                 
+            				
+          </tr>
+          
+                           <td colspan="11" style="text-align: right">
+              <h4>TOTAL AMOUNT</h4>
+            </td>
+            <td th:text="${totalParkingCost}">
+              
+            </td>
+        </table>
+        </body>
+        </html>
+        

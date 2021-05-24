@@ -37,8 +37,7 @@ import lombok.Data;
 	private boolean ownerActive;
 	@OneToOne
 	private FlatResidencies flatResidencies;
-	@OneToOne
-	private FlatDetails flatDetails;
+	
 	
 	
   
