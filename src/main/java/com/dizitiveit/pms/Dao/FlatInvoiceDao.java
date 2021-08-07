@@ -20,7 +20,7 @@ public interface FlatInvoiceDao extends JpaRepository<FlatInvoice,Long> {
 	 FlatInvoice findByFlats(Flats flats);
 	 
 		
-		  @Query(value = "select *  FROM flat_invoice where flats_flat_id=?1 ", nativeQuery = true) 
+		  @Query(value = "select *  FROM flat_invoice where flats_flat_id=?1 order by created_at desc limit 6", nativeQuery = true) 
 		 List<FlatInvoice> getByFlats(long flatId);
 		  
 		  @Query(value = "SELECT * FROM pms.flat_invoice WHERE MONTH(created_at) =?1  and YEAR(created_at) =?2 and flats_flat_id=?3", nativeQuery = true)
@@ -32,7 +32,7 @@ public interface FlatInvoiceDao extends JpaRepository<FlatInvoice,Long> {
 		  @Query(value = "SELECT * FROM pms.flat_invoice WHERE MONTH(created_at) =?1  and YEAR(created_at) =?2 and flats_flat_id=?3", nativeQuery = true)
 		  FlatInvoice getLatestInvoice(long flatId);
 		 
-		  @Query(value = "SELECT * FROM pms.flat_invoice  where order by created_at desc limit 1", nativeQuery = true)
+		  @Query(value = "SELECT * FROM pms.flat_invoice   order by created_at desc limit 1", nativeQuery = true)
 		  FlatInvoice getInvoice();
 		  
 		  List<FlatInvoice> findBycreatedAt(Date createdAt);

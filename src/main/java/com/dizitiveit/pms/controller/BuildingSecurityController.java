@@ -93,20 +93,42 @@ public class BuildingSecurityController {
 	public ResponseEntity<?> deactiveSecurityGaurd(@PathVariable long securityId)
 	{
 		BuildingSecurity buildingSecurity = buildingSecurityDao.findBySecurityId(securityId);
+		if(buildingSecurity!=null)
+		{	
 		buildingSecurity.setSecurityActive(false);
 		buildingSecurityDao.save(buildingSecurity);
 		 Responses responses = responsesDao.findById(77);
 			return ResponseEntity.ok(new Responses(responses.getResponsesId(), responses.getResName()));
+		}
+		else {
+			 Responses responses = responsesDao.findById(83);
+				return ResponseEntity.ok(new Responses(responses.getResponsesId(), responses.getResName()));
+		}
 	}
 	
 	@PostMapping("/activeSecurityGaurd/{securityId}")
 	public ResponseEntity<?> activeSecurityGaurd(@PathVariable long securityId)
 	{
 		BuildingSecurity buildingSecurity = buildingSecurityDao.findBySecurityId(securityId);
+		if(buildingSecurity!=null)
+		{	
 		buildingSecurity.setSecurityActive(true);
 		buildingSecurityDao.save(buildingSecurity);
-		 Responses responses = responsesDao.findById(77);
+		 Responses responses = responsesDao.findById(78);
 			return ResponseEntity.ok(new Responses(responses.getResponsesId(), responses.getResName()));
+		}
+		else {
+			 Responses responses = responsesDao.findById(83);
+				return ResponseEntity.ok(new Responses(responses.getResponsesId(), responses.getResName()));
+		}
+	}
+	
+	@GetMapping("/deactiveList")
+	public ResponseEntity<?> deactiveList(){
+		List<BuildingSecurity> buildingSecurity = buildingSecurityDao.getAllSecurities(false);
+		 HashMap<String, List<BuildingSecurity>> response = new HashMap<String,List<BuildingSecurity>>();
+         response.put("buildingSecurity",buildingSecurity);
+	 return ResponseEntity.ok(response);
 	}
 	
 	@DeleteMapping("/deleteSecurityGaurd/{securityId}")
@@ -226,5 +248,8 @@ public class BuildingSecurityController {
          response.put("listRegnos",vehicles);
 		 return ResponseEntity.ok(response);
 	 }
+	 
+	 
+	
 }	
 	

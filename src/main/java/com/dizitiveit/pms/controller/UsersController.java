@@ -244,7 +244,7 @@ public class UsersController {
 
 		if (users1 != null) {
 			Responses responses = responsesDao.findById(13);
-			// System.out.println("responseId"+responses.getResponsesId());
+			// System.out.println("responseId"+responses.getResponcsesId());
 			// System.out.println("resName"+responses.getResName());
 
 			return ResponseEntity.ok(new Responses(responses.getResponsesId(), responses.getResName()));
@@ -270,7 +270,7 @@ public class UsersController {
 		users1.setActive(true);
 		users1.setPassword(password);
 		long userId = userDetailsService.registerNewUser(users1);
-		Responses responses = responsesDao.findById(4);
+		Responses responses = responsesDao.findById(85);
 		return ResponseEntity.ok(new Responses(responses.getResponsesId(), responses.getResName()));
 	}
 

@@ -1463,7 +1463,103 @@ public class VisitorTagDetailsController {
 			return ResponseEntity.ok(response);
 	  }
 	  
-		
-		
-		 
+	  @GetMapping("/getWrongEntryList")
+	  public ResponseEntity<?> getWrongEntryList()
+	  {
+		  List<VisitorTagDetails> vistorList = visitorTagDetailsDao.getByVisitorStatus("WRONG ENTRY");
+		  List<VisitorTagDetailsPojo> visitorListPojo = new ArrayList();
+			for( VisitorTagDetails visitor :  vistorList)
+			{
+				VisitorTagDetailsPojo visitorPojo = new VisitorTagDetailsPojo();
+				visitorPojo.setBlockNumber(visitor.getBlockNumber());
+				visitorPojo.setBrand(visitor.getBrand());
+				DateFormat dfExpectedIn = new SimpleDateFormat("yyyy-MM-dd  HH:mm:ss");
+				if(visitor.getExpectedInTime()!=null) {
+					visitorPojo.setExpectedInTime((dfExpectedIn.format(visitor.getExpectedInTime())));
+				}
+				DateFormat dfExpectedOut= new SimpleDateFormat("yyyy-MM-dd  HH:mm:ss");
+				if(visitor.getExpectedOutTime()!=null) {
+					visitorPojo.setExpectedOutTime((dfExpectedOut.format(visitor.getExpectedOutTime())));
+				}
+				visitorPojo.setFlatNo(visitor.getFlats().getFlatNo());
+				visitorPojo.setModel(visitor.getModel());
+				 DateFormat dfIn = new SimpleDateFormat("yyyy-MM-dd  HH:mm:ss");
+				if(visitor.getInTime()!=null) {
+					visitorPojo.setInTime((dfIn.format(visitor.getInTime())));
+				}
+	
+				DateFormat dfOut = new SimpleDateFormat("yyyy-MM-dd  HH:mm:ss");
+				if(visitor.getOutTime()!=null) {
+					visitorPojo.setOutTime((dfOut.format(visitor.getOutTime())));
+				}
+				visitorPojo.setParkingCost(visitor.getParkingCost());
+				if(visitor.getSlots()!=null)
+				{	
+				visitorPojo.setSlotNo(visitor.getSlots().getSlotNo());
+				}
+				visitorPojo.setPhoneNumber(visitor.getPhoneNumber());
+				visitorPojo.setPurpose(visitor.getPurpose());
+				visitorPojo.setResidentType(visitor.getResidentType());
+				visitorPojo.setVehicleNumber(visitor.getVehicleNumber());
+				visitorPojo.setVehicleType(visitor.getVehicleType());
+				visitorPojo.setVisitorId(visitor.getVisitorId());
+				visitorPojo.setVisitorName(visitor.getVisitorName());
+				visitorPojo.setVisitorStatus(visitor.getVisitorStatus());
+				visitorPojo.setType(visitor.getType());
+				visitorListPojo.add(visitorPojo);
+
+		}	
+			 HashMap<String, List<VisitorTagDetailsPojo>> response = new HashMap<String,List<VisitorTagDetailsPojo>>();
+			 response.put("visitorListPojo",visitorListPojo);
+			return ResponseEntity.ok(response);
+	  }
+	 	
+		@PostMapping("/updateWrongEntry/{visitorId}/{flatNo}")
+		public ResponseEntity<?> updateWrongEntry(@PathVariable long visitorId,@PathVariable String flatNo,@RequestBody VisitorTagDetails visitorDetails  )
+		{
+			Flats flats=flatsDao.findByflatNo(flatNo);
+			VisitorTagDetails visitorDetailsUpdate = visitorTagDetailsDao.findByVisitorId(visitorId);
+			if(visitorDetailsUpdate!=null)
+			{	
+			visitorDetailsUpdate.setFlats(flats);
+			visitorDetailsUpdate.setVisitorName(visitorDetails.getVisitorName());
+			visitorDetailsUpdate.setBlockNumber(visitorDetails.getBlockNumber());
+			visitorDetailsUpdate.setVisitorStatus("PENDING");
+			visitorDetailsUpdate.setPhoneNumber(visitorDetails.getPhoneNumber());
+			visitorDetailsUpdate.setPurpose(visitorDetails.getPurpose());
+			visitorTagDetailsDao.save(visitorDetailsUpdate);
+			}
+		   FlatOwners	 flatOwners = flatOwnersDao.findByownersActive(flats.getFlatId(),true);
+			 if(flatOwners.getFlatResidencies()==null) {
+				// FlatOwners flatOwnersToken =  flatOwnersDao.findByownersPhone(flatOwners.getPhone(),true);
+			Users users = usersDao.findByMobile(flatOwners.getPhone());
+				 System.out.println(users.toString());
+				 System.out.println(flatOwners.getPhone());
+			System.out.println(users.getToken());
+			PushNotificationRequest pushnotificationreq = new PushNotificationRequest();
+			pushnotificationreq.setToken(users.getToken());
+			System.out.println(users.getToken());
+			pushnotificationreq.setTitle("You had a Visitor");
+			pushnotificationreq.setMessage(visitorDetails.getPurpose());
+			pushNotification.sendTokenNotification(pushnotificationreq);
+			 }
+			 else {
+				 FlatResidencies flatResidencies = flatResidenciesDao.findBytenantsActive(flats.getFlatId(),true);
+				Users  users = usersDao.findByMobile(flatResidencies.getPhone());
+				 System.out.println(users.getToken());
+					PushNotificationRequest pushnotificationreq = new PushNotificationRequest();
+					pushnotificationreq.setToken(users.getToken());
+					System.out.println(users.getToken());
+					pushnotificationreq.setTitle("You had a Visitor");
+					pushnotificationreq.setMessage(visitorDetails.getPurpose());
+					pushNotification.sendTokenNotification(pushnotificationreq);
+			 }
+			
+			Responses responses = responsesDao.findById(73);
+			System.out.println("responseId" + responses.getResponsesId());
+			System.out.println("resName" + responses.getResName());
+			return ResponseEntity.ok(new Responses(responses.getResponsesId(), responses.getResName()));
+		}
+	
+	
 }	

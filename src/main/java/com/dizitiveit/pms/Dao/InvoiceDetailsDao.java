@@ -21,10 +21,10 @@ public interface InvoiceDetailsDao extends JpaRepository<InvoiceDetails,Long>{
  @Query(value = "SELECT * FROM pms.invoice_details WHERE MONTH(created_at) =?1  and YEAR(created_at) =?2 and flats_flat_id=?3", nativeQuery = true)
  InvoiceDetails getInvoiceDetails(long month,long year,long flatId);
  
- @Query(value = "SELECT * FROM pms.invoice_details WHERE flats_flat_id=?1 and MONTH(created_at) =?2  and YEAR(created_at) =?3 order by created_at desc limit 1", nativeQuery = true)
- InvoiceDetails getInvoiceByFlat(long flatId,long month,long year);
+ @Query(value = "SELECT * FROM pms.invoice_details WHERE  MONTH(created_at) =?1  and YEAR(created_at) =?2 and  flats_flat_id=?3  order by created_at desc limit 1", nativeQuery = true)
+ InvoiceDetails getInvoiceByFlat(long month,long year,long flatId);
  
- @Query(value = "SELECT * FROM pms.invoice_details WHERE flats_flat_id=?1 order by created_at desc limit 1", nativeQuery = true)
+ @Query(value = "SELECT * FROM pms.invoice_details WHERE flats_flat_id=?1 order by created_at desc limit 6", nativeQuery = true)
  List<InvoiceDetails> InvoiceByFlat(long flatId);
  
  @Query(value = "SELECT * FROM pms.invoice_details WHERE flats_flat_id=?1 order by created_at desc limit 1", nativeQuery = true)

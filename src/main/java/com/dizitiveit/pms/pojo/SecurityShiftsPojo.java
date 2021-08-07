@@ -14,4 +14,8 @@ public class SecurityShiftsPojo {
 	private LocalTime endTime;
 	private String shiftSlot;
 	private boolean activeSlot;
+	private String gate;
+	private String firstName;
+	private String lastName;
+	private String mobile;
 }

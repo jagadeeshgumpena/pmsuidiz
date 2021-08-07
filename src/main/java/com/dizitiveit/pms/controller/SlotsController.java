@@ -218,7 +218,7 @@ public class SlotsController {
 				 slotsPojo.add(slotPojo);
 			 }
 			HashMap<String, List<SlotsPojo>> response = new HashMap<String,List<SlotsPojo>>();
-			response.put("slotPojo", slotsPojo);
+			response.put("slotsPojo", slotsPojo);
 		 return ResponseEntity.ok(response);
 		}
 		return ResponseEntity.ok("error");
@@ -261,9 +261,15 @@ public class SlotsController {
 			slots.setAssigned(false);
 			slots.setOccupied(false);
 			slotsDao.save(slots);
+			Responses responses = responsesDao.findById(62);
+			  return ResponseEntity.ok(new  Responses(responses.getResponsesId(),responses.getResName()));
 		}
-		Responses responses = responsesDao.findById(62);
-		  return ResponseEntity.ok(new  Responses(responses.getResponsesId(),responses.getResName()));
+		else {
+			
+			Responses responses = responsesDao.findById(79);
+			  return ResponseEntity.ok(new  Responses(responses.getResponsesId(),responses.getResName()));
+		}
+		
 	}
 	/*
 	 * @GetMapping("/getSlotsByFlats/{flatNo}") public ResponseEntity<?>

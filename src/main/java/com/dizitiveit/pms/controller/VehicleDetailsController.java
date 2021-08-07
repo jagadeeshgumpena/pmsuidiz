@@ -166,7 +166,7 @@ public class VehicleDetailsController {
 				   FlatOwners flatOwners = flatOwnersDao.findByownersPhone(users.getMobile(),true);
 				   if(flatOwners.getFlatResidencies()==null)
 				   {
-					   List<VehicleDetails> vehicleDetails = vehicleDetailsDao.findByFlats(flatOwners.getFlats());
+					   List<VehicleDetails> vehicleDetails = vehicleDetailsDao.findByflatsAndOwners(flatOwners.getFlats().getFlatId(),flatOwners.getFlatownersId());
 				    	
 						   for(VehicleDetails v : vehicleDetails) {
 							   VehicleDetailsPojo vehicleDetailsPojo = new VehicleDetailsPojo();
@@ -209,7 +209,7 @@ public class VehicleDetailsController {
 			   {
 				  FlatResidencies flatResidencies=flatResidenciesDao.findByPhone(users.getMobile());
 				  FlatOwners flatOwners= flatOwnersDao.findByFlatResidencies(flatResidencies);
-				  List<VehicleDetails> vehicleDetails = vehicleDetailsDao.findByFlats(flatOwners.getFlats());
+				  List<VehicleDetails> vehicleDetails = vehicleDetailsDao.findByflatsAndTenant(flatOwners.getFlats().getFlatId(),flatResidencies.getFlatresidenciesId());
 			    	
 					   for(VehicleDetails v : vehicleDetails) {
 						   VehicleDetailsPojo vehicleDetailsPojo = new VehicleDetailsPojo();
@@ -375,7 +375,8 @@ public class VehicleDetailsController {
 		   }
 	 
 	 @DeleteMapping(value="/deleteVehicleByFlat/{flatNo}")
-	 public ResponseEntity<?> deleteVehicle(@PathVariable String flatNo){
+	 public ResponseEntity<?> deleteVehicle(@PathVariable String flatNo)
+	 {
 		 try {
 			 Flats flats = flatsDao.findByflatNo(flatNo); 
 			    //System.out.println("vehicle id is"+vehicleId);  

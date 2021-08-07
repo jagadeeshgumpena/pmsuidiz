@@ -288,6 +288,7 @@ public class SecurityShiftsController {
 				shiftsPojo.setEndTime(securityShift.getEndTime());
 				shiftsPojo.setStartDate(securityShift.getStartDate());
 				shiftsPojo.setEndDate(securityShift.getEndDate());
+				shiftsPojo.setGate(securityShift.getGate());
 				listsecurityShiftPojo.add(shiftsPojo);
 			}
 			buildingSecurityPojo.setSecurityShifts(listsecurityShiftPojo);
@@ -385,6 +386,7 @@ public class SecurityShiftsController {
 				shiftsPojo.setEndTime(securityShift.getEndTime());
 				shiftsPojo.setStartDate(securityShift.getStartDate());
 				shiftsPojo.setEndDate(securityShift.getEndDate());
+				shiftsPojo.setGate(securityShift.getGate());
 				listsecurityShiftPojo.add(shiftsPojo);
 				}
 				 buildingSecurityPojo.setSecurityShifts(listsecurityShiftPojo);
@@ -496,6 +498,7 @@ public class SecurityShiftsController {
 				shiftsPojo.setEndTime(securityShift.getEndTime());
 				shiftsPojo.setStartDate(securityShift.getStartDate());
 				shiftsPojo.setEndDate(securityShift.getEndDate());
+				shiftsPojo.setGate(securityShift.getGate());
 				listsecurityShiftPojo.add(shiftsPojo);
 				}
 				buildingSecurityPojo.setSecurityShifts(listsecurityShiftPojo);
@@ -647,5 +650,37 @@ public class SecurityShiftsController {
            
 	}
 
+	@GetMapping("/getTodaySecurityShift")
+	public ResponseEntity<?> getTodaySecurityShift()
+	{
+		Date date= new Date();
+		Instant inst = date.toInstant();
+		 LocalDate localDate = inst.atZone(ZoneId.systemDefault()).toLocalDate();
+		  Instant dayInst = localDate.atStartOfDay(ZoneId.systemDefault()).toInstant();
+		   Date day = Date.from(dayInst);
+		  System.out.println(day);
+		   Date dateTomorrow=DateUtils.addDays(day, 1);
+		List<SecurityShifts> securityShitsList = securityShiftsDao.findBySecurityToday(day, true);
+		
+		List<SecurityShiftsPojo> listsecurityShiftPojo= new ArrayList();
+		for(SecurityShifts securityShift : securityShitsList)
+		{
+		SecurityShiftsPojo shiftsPojo = new SecurityShiftsPojo();
+		shiftsPojo.setSecurityId(securityShift.getBuildingSecurity().getSecurityId());
+		shiftsPojo.setShiftSlot(securityShift.getShiftSlot());
+		shiftsPojo.setStartTime(securityShift.getStartTime());
+		shiftsPojo.setEndTime(securityShift.getEndTime());
+		shiftsPojo.setStartDate(securityShift.getStartDate());
+		shiftsPojo.setEndDate(securityShift.getEndDate());
+		shiftsPojo.setGate(securityShift.getGate());
+		shiftsPojo.setFirstName(securityShift.getBuildingSecurity().getFirstName());
+		shiftsPojo.setLastName(securityShift.getBuildingSecurity().getLastName());
+		shiftsPojo.setMobile(securityShift.getBuildingSecurity().getMobile());
+		listsecurityShiftPojo.add(shiftsPojo);
+		}
+		  HashMap<String, List<SecurityShiftsPojo>> response = new HashMap<String,List<SecurityShiftsPojo>>();
+	         response.put("TodaySecuritylist",listsecurityShiftPojo);
+		 return ResponseEntity.ok(response);
+	}
 	
 }

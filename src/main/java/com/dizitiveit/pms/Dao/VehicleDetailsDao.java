@@ -43,6 +43,11 @@ public interface VehicleDetailsDao extends JpaRepository<VehicleDetails, Long>{
 	 @Query(value = "select * FROM pms.vehicle_details where flat_residencies_flatresidencies_id=?1 and vehicle_status=?2", nativeQuery = true)
 	 List<VehicleDetails> findByflatTenants(long flatResidenciesId,boolean vehicleStatus);
 	 
+	 @Query(value = "select * FROM pms.vehicle_details where flats_flat_id=?1 and flat_residencies_flatresidencies_id=?2", nativeQuery = true)
+	 List<VehicleDetails> findByflatsAndTenant(long flatId,long flatResidenciesId);
+	 
+	 @Query(value = "select * FROM pms.vehicle_details where flats_flat_id=?1 and flat_owners_flatowners_id=?2", nativeQuery = true)
+	 List<VehicleDetails> findByflatsAndOwners(long flatId,long flatOwnersId);
 	
 	 
 	 @Modifying

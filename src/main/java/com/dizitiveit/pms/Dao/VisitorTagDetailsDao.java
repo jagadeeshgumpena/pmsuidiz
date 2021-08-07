@@ -67,4 +67,10 @@ public interface VisitorTagDetailsDao extends JpaRepository<VisitorTagDetails,Lo
 	
 	@Query(value = "SELECT * FROM pms.visitor_tag_number WHERE MONTH(created_at) =?1  and YEAR(created_at) =?2 and flats_flat_id=?3 and visitor_status=?4 order by visitor_id asc", nativeQuery = true)
 	List<VisitorTagDetails> getVisitorInvoice(long month,long year,long flatId,String visitorStatus);
+	
+	@Query(value = "SELECT * FROM pms.visitor_tag_number WHERE flats_flat_id=?1 and visitor_status=?2 order by created_at desc limit 6 ", nativeQuery = true)
+	List<VisitorTagDetails> getLastSixMonths(long flatId,String visitorStatus);
+	
+	@Query(value="select * from visitor_tag_number where visitor_status=?1 order by visitor_id desc",nativeQuery = true)
+	List<VisitorTagDetails> getByVisitorStatus(String visitorStatus);
 }

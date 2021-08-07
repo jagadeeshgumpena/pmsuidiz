@@ -16,17 +16,21 @@ import org.springframework.web.bind.annotation.RequestBody;
 import org.springframework.web.bind.annotation.RequestMapping;
 import org.springframework.web.bind.annotation.RestController;
 
+import com.dizitiveit.pms.Dao.FlatsDao;
 import com.dizitiveit.pms.Dao.ResponsesDao;
 import com.dizitiveit.pms.Dao.SlotsDao;
 import com.dizitiveit.pms.Dao.VehicleDetailsDao;
 import com.dizitiveit.pms.Dao.VehicleMovementRegisterDao;
+import com.dizitiveit.pms.model.Flats;
 import com.dizitiveit.pms.model.Responses;
 import com.dizitiveit.pms.model.Slots;
+import com.dizitiveit.pms.model.Users;
 import com.dizitiveit.pms.model.VehicleDetails;
 import com.dizitiveit.pms.model.VehicleMovementRegister;
 import com.dizitiveit.pms.model.VisitorTagDetails;
 import com.dizitiveit.pms.pojo.FlatVisitorSlotPojo;
 import com.dizitiveit.pms.pojo.VehicleMovementRegisterPojo;
+import com.dizitiveit.pms.service.MyUserDetailsService;
 @RestController
 @RequestMapping("/moment")
 public class VehicleMomentRegisterController {
@@ -42,6 +46,12 @@ public class VehicleMomentRegisterController {
 	
 	@Autowired
 	private ResponsesDao responsesDao;
+	
+	@Autowired
+	private FlatsDao flatsDao;
+	
+	@Autowired
+	private MyUserDetailsService userDetailsService;
 	
 	@PostMapping("/vehicleIn/{vehicleId}/{slotNo}")
 	 public ResponseEntity<?> vehicleIn(@PathVariable long vehicleId,@PathVariable String slotNo){
@@ -215,4 +225,119 @@ public class VehicleMomentRegisterController {
 		 response.put("InVehicles",vehicleMovementPojolist);
 		return ResponseEntity.ok(response);
 	}
-}
+	
+	@GetMapping("/getLatestvehicleDetails/{flatNo}")
+	public ResponseEntity<?> getVehicleDetails(@PathVariable String flatNo)
+	{
+		Flats flats = flatsDao.findByflatNo(flatNo);
+		List<VehicleMovementRegister> vehicleMomentList = vehicleMovementRegisterDao.getLatestMonthVehicleMovementInvoice();
+		List<VehicleMovementRegisterPojo> vehicleMovementPojolist = new ArrayList();
+		for(VehicleMovementRegister vehicleMovement : vehicleMomentList )
+		{
+			if(vehicleMovement.getVehicleDetails().getFlats().getFlatId() == flats.getFlatId())
+			{
+				VehicleMovementRegisterPojo vehicleMovementPojo = new VehicleMovementRegisterPojo();
+				vehicleMovementPojo.setVehiclemovementId(vehicleMovement.getVehiclemovementId());
+				vehicleMovementPojo.setRegNo(vehicleMovement.getVehicleDetails().getRegNo());
+				vehicleMovementPojo.setColor(vehicleMovement.getVehicleDetails().getColor());
+				vehicleMovementPojo.setVehicleId(vehicleMovement.getVehicleDetails().getVehicleId());
+				vehicleMovementPojo.setModel(vehicleMovement.getVehicleDetails().getModel());
+				vehicleMovementPojo.setMake(vehicleMovement.getVehicleDetails().getMake());
+				vehicleMovementPojo.setFlatNo(vehicleMovement.getVehicleDetails().getFlats().getFlatNo());
+				vehicleMovementPojo.setSlotNo(vehicleMovement.getSlots().getSlotNo());
+				vehicleMovementPojo.setType(vehicleMovement.getVehicleDetails().getType());
+				 DateFormat dfIn = new SimpleDateFormat("yyyy-MM-dd'T'HH:mm:ss");
+		   			if(vehicleMovement.getVehicleIn()!=null) {
+		   				vehicleMovementPojo.setVehicleIn((dfIn.format(vehicleMovement.getVehicleIn())));
+						}
+		   		 DateFormat dfOut = new SimpleDateFormat("yyyy-MM-dd'T'HH:mm:ss");
+		   			if(vehicleMovement.getVehicleOut()!=null) {
+		   				vehicleMovementPojo.setVehicleOut((dfOut.format(vehicleMovement.getVehicleOut())));
+						}
+		   			
+		   			vehicleMovementPojo.setVehicleStatus(vehicleMovement.getVehicleDetails().isVehicleStatus());
+		   			vehicleMovementPojolist.add(vehicleMovementPojo);
+			}
+		}
+		HashMap<String,List<VehicleMovementRegisterPojo>> response = new HashMap<String,List<VehicleMovementRegisterPojo>>();
+		 response.put("VehiclesList",vehicleMovementPojolist);
+		return ResponseEntity.ok(response);
+		}
+	
+
+	@GetMapping("/getVehicleDetails/{flatNo}/{month}/{year}")
+	public ResponseEntity<?> getVehicleDetails(@PathVariable String flatNo,@PathVariable long month,@PathVariable long year){
+		Flats flats = flatsDao.findByflatNo(flatNo);
+		 Users users = userDetailsService.getAuthUser();
+		List<VehicleMovementRegister> vehicleMomentList = vehicleMovementRegisterDao.getVehicleMovementList(month,year);
+		List<VehicleMovementRegisterPojo> vehicleMovementPojolist = new ArrayList();
+		
+		for(VehicleMovementRegister vehicleMovement : vehicleMomentList )
+		{
+			if(vehicleMovement.getVehicleDetails().getFlats().getFlatId() == flats.getFlatId())
+			{
+				 if(users.getRoles().equalsIgnoreCase("ROLE_OWNER")) 
+				   {
+					 if(vehicleMovement.getVehicleDetails().getFlatOwners()!=null)
+					 {
+				VehicleMovementRegisterPojo vehicleMovementPojo = new VehicleMovementRegisterPojo();
+				vehicleMovementPojo.setVehiclemovementId(vehicleMovement.getVehiclemovementId());
+				vehicleMovementPojo.setRegNo(vehicleMovement.getVehicleDetails().getRegNo());
+				vehicleMovementPojo.setColor(vehicleMovement.getVehicleDetails().getColor());
+				vehicleMovementPojo.setVehicleId(vehicleMovement.getVehicleDetails().getVehicleId());
+				vehicleMovementPojo.setModel(vehicleMovement.getVehicleDetails().getModel());
+				vehicleMovementPojo.setMake(vehicleMovement.getVehicleDetails().getMake());
+				vehicleMovementPojo.setFlatNo(vehicleMovement.getVehicleDetails().getFlats().getFlatNo());
+				vehicleMovementPojo.setSlotNo(vehicleMovement.getSlots().getSlotNo());
+				vehicleMovementPojo.setType(vehicleMovement.getVehicleDetails().getType());
+				 DateFormat dfIn = new SimpleDateFormat("yyyy-MM-dd'T'HH:mm:ss");
+		   			if(vehicleMovement.getVehicleIn()!=null) {
+		   				vehicleMovementPojo.setVehicleIn((dfIn.format(vehicleMovement.getVehicleIn())));
+						}
+		   		 DateFormat dfOut = new SimpleDateFormat("yyyy-MM-dd'T'HH:mm:ss");
+		   			if(vehicleMovement.getVehicleOut()!=null) {
+		   				vehicleMovementPojo.setVehicleOut((dfOut.format(vehicleMovement.getVehicleOut())));
+						}
+		   			
+		   			vehicleMovementPojo.setVehicleStatus(vehicleMovement.getVehicleDetails().isVehicleStatus());
+		   			vehicleMovementPojolist.add(vehicleMovementPojo);
+					 }
+				   }
+					 else
+					 {
+						 if(vehicleMovement.getVehicleDetails().getFlatResidencies()!=null)
+						 {
+							 VehicleMovementRegisterPojo vehicleMovementPojo = new VehicleMovementRegisterPojo();
+								vehicleMovementPojo.setVehiclemovementId(vehicleMovement.getVehiclemovementId());
+								vehicleMovementPojo.setRegNo(vehicleMovement.getVehicleDetails().getRegNo());
+								vehicleMovementPojo.setColor(vehicleMovement.getVehicleDetails().getColor());
+								vehicleMovementPojo.setVehicleId(vehicleMovement.getVehicleDetails().getVehicleId());
+								vehicleMovementPojo.setModel(vehicleMovement.getVehicleDetails().getModel());
+								vehicleMovementPojo.setMake(vehicleMovement.getVehicleDetails().getMake());
+								vehicleMovementPojo.setFlatNo(vehicleMovement.getVehicleDetails().getFlats().getFlatNo());
+								vehicleMovementPojo.setSlotNo(vehicleMovement.getSlots().getSlotNo());
+								vehicleMovementPojo.setType(vehicleMovement.getVehicleDetails().getType());
+								 DateFormat dfIn = new SimpleDateFormat("yyyy-MM-dd'T'HH:mm:ss");
+						   			if(vehicleMovement.getVehicleIn()!=null) {
+						   				vehicleMovementPojo.setVehicleIn((dfIn.format(vehicleMovement.getVehicleIn())));
+										}
+						   		 DateFormat dfOut = new SimpleDateFormat("yyyy-MM-dd'T'HH:mm:ss");
+						   			if(vehicleMovement.getVehicleOut()!=null) {
+						   				vehicleMovementPojo.setVehicleOut((dfOut.format(vehicleMovement.getVehicleOut())));
+										}
+						   			
+						   			vehicleMovementPojo.setVehicleStatus(vehicleMovement.getVehicleDetails().isVehicleStatus());
+						   			vehicleMovementPojolist.add(vehicleMovementPojo);
+						 }
+					 }
+					 
+			}
+			
+			
+		}
+		HashMap<String,List<VehicleMovementRegisterPojo>> response = new HashMap<String,List<VehicleMovementRegisterPojo>>();
+		 response.put("VehiclesList",vehicleMovementPojolist);
+		return ResponseEntity.ok(response);
+		}
+	}
+

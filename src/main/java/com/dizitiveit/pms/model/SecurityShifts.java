@@ -35,6 +35,5 @@ public class SecurityShifts {
 	private boolean activeSlot;
 	@ManyToOne
 	private BuildingSecurity buildingSecurity;
-	
-	
+	private String gate;
 }

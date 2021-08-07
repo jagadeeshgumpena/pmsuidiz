@@ -57,9 +57,9 @@ public class PdfController {
 		System.out.println(flatNo);
 		//long invoiceId=256;
 		 Flats flats = flatsDao.findByflatNo(flatNo); 
-		InvoiceDetails invoiceDetails= invoiceDetailsDao.getInvoiceByFlat(flats.getFlatId(),month, year);
+		InvoiceDetails invoiceDetails= invoiceDetailsDao.getInvoiceByFlat(month, year,flats.getFlatId());
 		model.addAttribute("invoiceDetails",invoiceDetails);
-		FlatInvoice flatInvoice = flatInvoiceDao.getInvoiceByFlat(flats.getFlatId());
+		FlatInvoice flatInvoice = flatInvoiceDao.getInvoice(month,year,flats.getFlatId());
 		model.addAttribute("flatInvoice",flatInvoice);
 		GeneralInvoice generalInvoice = generalInvoiceDao.findBycreatedAt(flatInvoice.getCreatedAt());
 		System.out.println(flatInvoice.getCreatedAt());
@@ -88,20 +88,24 @@ public class PdfController {
 
 		
 		
-		double total=generalInvoice.getElectricityBill()+generalInvoice.getGenerator()+generalInvoice.getInfraStructure()+generalInvoice.getSalary()+generalInvoice.getWater();
-		model.addAttribute("total",total);
-		model.addAttribute("generalInvoice",generalInvoice);
+		double total=flatInvoice.getElectricityBill()+flatInvoice.getGenerator()+flatInvoice.getInfraStructure()+flatInvoice.getSalary()+flatInvoice.getWater();
+		Double totalRound = Math.round(total * 100.0) / 100.0;
+		model.addAttribute("total",totalRound);
+		model.addAttribute("flatInvoice",flatInvoice);
 		double overAlltotal = 0;
+		overAlltotal=overAlltotal+total;
 		if(invoiceDetails!=null)
 		{
-			overAlltotal=invoiceDetails.getElectricityAmount()+invoiceDetails.getWaterAmount()+total;
+			overAlltotal=invoiceDetails.getElectricityAmount()+invoiceDetails.getWaterAmount();
 		}
+		overAlltotal = overAlltotal+totalParkingCost;
 		model.addAttribute("overAlltotal",overAlltotal);
 		double GstAmount = overAlltotal*18/100;
 		model.addAttribute("GstAmount",GstAmount);
 		System.out.println(GstAmount);
 		double invoiceAmount = overAlltotal+GstAmount;
-		model.addAttribute("invoiceAmount",invoiceAmount);
+		Double invoiceAmountround = Math.round(invoiceAmount * 100.0) / 100.0;
+		model.addAttribute("invoiceAmount",invoiceAmountround);
 		model.addAttribute("visitorsCount",visitorsCount);
 		model.addAttribute("totalParkingCost",totalParkingCost);
      	return "pdf";	

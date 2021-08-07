@@ -49,6 +49,7 @@ public interface SecurityShiftsDao extends JpaRepository<SecurityShifts, Long> {
 	 @Query(value = "select * FROM pms.security_shift WHERE ?1 between start_date and end_date and active_slot=?2", nativeQuery = true)
 	 List<SecurityShifts> findBySecurityToday(Date endDate,boolean activeSlot);
 	 
+	 
 	 @Modifying
 	  @Transactional
 	  @Query(value = "delete  from security_shift where building_security_security_id=?1 ", nativeQuery = true)

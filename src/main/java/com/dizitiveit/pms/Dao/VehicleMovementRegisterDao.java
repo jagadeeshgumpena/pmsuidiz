@@ -29,8 +29,17 @@ VehicleMovementRegister findById(long vehicleMovementRegisterId);
 	List<VehicleMovementRegister> findByvehicle(long VehicleId);
 	 
 	
-	@Query(value = "SELECT * FROM pms.vehicle_movement_register WHERE MONTH(vehicle_out) =?1  and YEAR(vehicle_out) =?2 and vehicle_out is not null", nativeQuery = true)
+	@Query(value = "SELECT * FROM pms.vehicle_movement_register WHERE  MONTH(vehicle_out) =?1  and YEAR(vehicle_out) =?2 and vehicle_out is not null", nativeQuery = true)
 	List<VehicleMovementRegister> getVehicleMovementInvoice(long month,long year);
+	
+	@Query(value = "SELECT * FROM pms.vehicle_movement_register order by vehicle_out desc limit 6 ", nativeQuery = true)
+	List<VehicleMovementRegister> getSixMonthsVehicleMovementInvoice();
+	
+	@Query(value = "SELECT * FROM pms.vehicle_movement_register order by vehicle_out desc ", nativeQuery = true)
+	List<VehicleMovementRegister> getLatestMonthVehicleMovementInvoice();
+	
+	@Query(value = "SELECT * FROM pms.vehicle_movement_register WHERE  MONTH(vehicle_in) =?1  and YEAR(vehicle_in) =?2", nativeQuery = true)
+	List<VehicleMovementRegister> getVehicleMovementList(long month,long year);
 	
 	 
 }

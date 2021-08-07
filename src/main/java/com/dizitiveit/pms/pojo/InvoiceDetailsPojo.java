@@ -21,6 +21,7 @@ public class InvoiceDetailsPojo {
 	  private long waterConsumedUnits;
 	  private double waterRsPerUnit; 
 	  private double waterAmount;
+	  private double invoiceAmount;
     private String flatNo;
     private String createdAt;
     

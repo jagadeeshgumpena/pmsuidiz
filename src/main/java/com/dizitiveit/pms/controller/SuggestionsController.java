@@ -62,9 +62,10 @@ public class SuggestionsController {
 	 private ResponsesDao responsesDao;
 	
 	@PostMapping("/sendSuggestion/{suggestion}")
-	public ResponseEntity<?> sendSuggestion(@PathVariable String suggestion,@RequestParam (name = "flatNo",required = false) String flatNo ){	
-		if(flatNo=="")
-		{	
+	public ResponseEntity<?> sendSuggestion(@PathVariable String suggestion,@RequestParam (name = "flatNo",required = false) String flatNo ){
+		System.out.println(flatNo);
+		if(flatNo==null)
+		{
 		List<Flats> flats = flatsDao.findAll();
 		for(Flats f : flats)
 		{

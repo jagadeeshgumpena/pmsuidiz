@@ -158,7 +158,7 @@ public class OwnerTenantRegistrationController {
 				flatOwnersDao.save(flatOwners);	
 				 String message = flatOwners.getFirstname()+" "+flatOwners.getLastName()+" "+"your registered to the flat"+" "+flatOwners.getFlats().getFlatNo()+" "+"with the mobile number"+" "+flatOwners.getPhone()+" "+"Please download the app and login into it"; 
 				 otpService.sendSms(flatOwners.getPhone(), message);
-				Responses responses = responsesDao.findById(4);
+				Responses responses = responsesDao.findById(81);
 	   			  return ResponseEntity.ok(new  Responses(responses.getResponsesId(),responses.getResName()));
 			
 			//}
@@ -268,7 +268,7 @@ public class OwnerTenantRegistrationController {
 			slot.setOccupied(false);
 			slot.setFilled(false);
 			slot.setFlats(null);
-			slotsDao.save(slot);
+		slotsDao.save(slot);
 		}
 		long flatResidentsId=0;
 		FlatOwners flatOwners=flatOwnersDao.findByownersActive(flats.getFlatId(), true);
@@ -328,7 +328,7 @@ public class OwnerTenantRegistrationController {
 		String message = flatResidencies.getFirstname()+" "+flatResidencies.getLastName()+" "+"your registered to the flat"+" "+flatResidencies.getFlats().getFlatNo()+" "+"with the mobile number"+" "+flatResidencies.getPhone()+" "+"Please download the app and login into it"; 
 		 otpService.sendSms(flatResidencies.getPhone(), message);
 		 
-		Responses responses = responsesDao.findById(4);
+		Responses responses = responsesDao.findById(82);
 		  return ResponseEntity.ok(new  Responses(responses.getResponsesId(),responses.getResName()));
 		    }
 		    else
@@ -391,8 +391,9 @@ public class OwnerTenantRegistrationController {
 		users1.setMobileVerification(true);
 		users1.setActive(true);
 		long userId = userDetailsService.registerNewUser(users1);	
+		buildingSecurity.setSecurityActive(true);
 		buildingSecurityDao.save(buildingSecurity);
-	    Responses responses = responsesDao.findById(4);
+	    Responses responses = responsesDao.findById(80);
   		  return ResponseEntity.ok(new  Responses(responses.getResponsesId(),responses.getResName()));
   		  
   		  
