@@ -14,5 +14,7 @@ public class InvoicePojo {
 	private InvoiceDetailsPojo invoiceDetailsPojo;
 	private  FlatOwnersPojo flatResident;
 	private VisitorsParkingCostPojo visitorsParkingCostPojo;
+	private double invoiceAmount;
 	
 }
+ 

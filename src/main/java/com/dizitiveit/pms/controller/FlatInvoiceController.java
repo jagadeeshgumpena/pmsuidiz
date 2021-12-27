@@ -175,7 +175,18 @@ public class FlatInvoiceController {
  			}
  			visitors.setTotalParkingCost(totalParkingCost);
 				visitors.setNumberOfVisitors(totalVistors);
- 			
+				double total=flatInvoice.getElectricityBill()+flatInvoice.getGenerator()+flatInvoice.getInfraStructure()+flatInvoice.getSalary()+flatInvoice.getWater();
+		 			//invoice.setInvoiceDetailsPojolist(invoiceDetailsPojolist);
+		    	    if(invoiceDetails!=null)
+	 				{
+		    	    	total=invoiceDetails.getElectricityAmount()+invoiceDetails.getWaterAmount()+total;
+	 				}
+				  total=total+totalParkingCost;
+		    	    System.out.println(total);
+		    	   double GstAmount = total*18/100;
+		    	   double overAllTotal= total+GstAmount;
+		    	  Double overAllTotalround = Math.round(overAllTotal * 100.0) / 100.0;
+				
 			FlatOwners flatOwners = flatOwnersDao.findByownersActive(flats.getFlatId(),true);
 			FlatOwnersPojo flatResident= new FlatOwnersPojo();
 			if(flatOwners!=null && flatOwners.getFlatResidencies()==null)
@@ -209,6 +220,7 @@ public class FlatInvoiceController {
 			invoice.setFlatInvoicePojo(flatInvoicePojo);
 			invoice.setFlatResident(flatResident);
 			invoice.setVisitorsParkingCostPojo(visitors);
+			invoice.setInvoiceAmount(overAllTotal);
 			HashMap<String, InvoicePojo> response = new HashMap<String,InvoicePojo>();
 	         response.put("Invoice",invoice);
 	         return ResponseEntity.ok(response);
@@ -258,7 +270,6 @@ public class FlatInvoiceController {
 	public ResponseEntity<?>  getGeneralLastestInvoiceByFlat(){
 		     List<Flats> flats= flatsDao.findAll();
 		     List<InvoicePojo> invoices = new ArrayList();
-		     double invoiceAmount=0;
 		     for(Flats f : flats) {
 			InvoicePojo invoice = new InvoicePojo();
 			FlatInvoice flatInvoice = flatInvoiceDao.getInvoiceByFlat(f.getFlatId());
@@ -305,12 +316,12 @@ public class FlatInvoiceController {
 	    	    	total=invoiceDetails.getElectricityAmount()+invoiceDetails.getWaterAmount()+total;
 				}
 	    	    
-	    	   // total=total+totalParkingCost;
+	    	      // total=total+totalParkingCost;
 		    	    System.out.println(total);
 		    	   double GstAmount = total*18/100;
 		    	   double overAllTotal= total+GstAmount;
 		    	  Double overAllTotalround = Math.round(overAllTotal * 100.0) / 100.0;
-		    	  invoiceDetailsPojo.setInvoiceAmount(overAllTotalround);
+		    	  
 			}
 			
 			FlatOwners flatOwners = flatOwnersDao.findByownersActive(f.getFlatId(),true);
