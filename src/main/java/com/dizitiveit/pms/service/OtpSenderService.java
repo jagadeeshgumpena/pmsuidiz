@@ -42,6 +42,12 @@ public class OtpSenderService {
 
 	@Value("${sms.type}")
 	private String SMSTYPE;
+	
+	@Value("${sms.entityid}")
+	private String ENTITYID;
+	
+	@Value("${sms.tempid}")
+	private String TEMPID;
 
 	private String otpNumber;
 
@@ -59,6 +65,8 @@ public class OtpSenderService {
 		otpsender.setType(SMSTYPE);
 		otpsender.setDestination(mobile);
 		otpsender.setSource(SMSSOURCE);
+		otpsender.setEntityid(ENTITYID);
+		otpsender.setTempid(TEMPID);
 
 		System.out.println("SMS DETAILS: " + otpsender.toString());
 		otpsender.submitMessage();
@@ -142,8 +150,8 @@ public class OtpSenderService {
 		otpsender.setType(SMSTYPE);
 		otpsender.setDestination(mobile);
 		otpsender.setSource(SMSSOURCE);
-
-		
+		otpsender.setEntityid(ENTITYID);
+		otpsender.setTempid(TEMPID);
 		otpsender.submitMessage();
 		
 
@@ -151,3 +159,4 @@ public class OtpSenderService {
 
 	}
 }
+
