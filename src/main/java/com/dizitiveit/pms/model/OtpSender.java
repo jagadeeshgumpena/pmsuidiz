@@ -56,9 +56,9 @@ public class OtpSender {
 	  String message = null; 
 	  try { 
 		  // Url that will be called to submit the message
-		  System.out.println("username"+this.username+"password"+this.password);
+		 
 	  URL sendUrl = new URL("http://" + this.server + ":" + this.port + "/bulksms/bulksms");
-	  
+	  System.out.println(sendUrl);
 	  @SuppressWarnings("unused")
 	  HostnameVerifier hostVerfier = new HostnameVerifier() { 
 		  public boolean verify(String urlHostName, SSLSession session) { 
@@ -75,18 +75,18 @@ public class OtpSender {
 	  DataOutputStream dataStreamToServer = new
 	  DataOutputStream(httpConnection.getOutputStream());
 	  dataStreamToServer.writeBytes("username=" + URLEncoder.encode(this.username,
-	  "UTF-8") + "&password=" + URLEncoder.encode(this.password, "UTF-8") +
-	  "&type=" + URLEncoder.encode(this.type, "UTF-8") + "&dlr=" +
-	  URLEncoder.encode(this.dlr, "UTF-8") + "&destination=" +
-	  URLEncoder.encode(this.destination, "UTF-8") + "&source=" +
-	  URLEncoder.encode(this.source, "UTF-8") + "&message=" +
-	  URLEncoder.encode(this.message, "UTF-8") + "&entityid=" +
-	  URLEncoder.encode(this.entityid, "UTF-8")+ "&tempid=" +
+	  "UTF-8")+ "&password="+ URLEncoder.encode(this.password, "UTF-8") +
+	  "&type="+ URLEncoder.encode(this.type, "UTF-8")+"&dlr="+
+	  URLEncoder.encode(this.dlr, "UTF-8") +"&destination="+
+	  URLEncoder.encode(this.destination, "UTF-8") +"&source="+
+	  URLEncoder.encode(this.source, "UTF-8") +"&message="+
+	  URLEncoder.encode(this.message, "UTF-8") +"&entityid="+
+	  URLEncoder.encode(this.entityid, "UTF-8")+"&tempid="+
 	  URLEncoder.encode(this.tempid, "UTF-8")); 
 	  dataStreamToServer.flush();
 	  dataStreamToServer.close();
 	 
-	  
+
 	  BufferedReader dataStreamFromUrl = new BufferedReader( new InputStreamReader(httpConnection.getInputStream()));
 	  String dataFromUrl = "",
 	  dataBuffer = "";
@@ -94,7 +94,6 @@ public class OtpSender {
 	  while ((dataBuffer = dataStreamFromUrl.readLine()) != null) {
 		  dataFromUrl += dataBuffer;
 		  }
-	  System.out.println(dataStreamFromUrl);
 	  dataStreamFromUrl.close();
 	  
 	  System.out.println("Response Success: " + dataFromUrl);
