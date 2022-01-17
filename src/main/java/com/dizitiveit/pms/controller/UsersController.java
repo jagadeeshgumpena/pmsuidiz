@@ -321,8 +321,8 @@ public class UsersController {
 			@PathVariable String reqType, @PathVariable String token,
 			@RequestParam(name = "purpose", required = false) String purpose) {
 		Users users = usersDao.findByMobile(mobile);
-		// int serverOtp = otpService.getOtp(mobile);
-		int serverOtp = 999999;
+		 int serverOtp = otpService.getOtp(mobile);
+		//int serverOtp = 999999;
 		System.out.println("Pathvariable otp is" + otpNum);
 		System.out.println("Server otp is" + serverOtp);
 		int intOtp = Integer.parseInt(otpNum);
@@ -470,13 +470,13 @@ public class UsersController {
 			// send OTP thru SMS
 			 //otpNumber = otpService.sendOtp(mobile, message);
 
-			otpNumber = "999999";
+			//otpNumber = "999999";
 			//otpCache.put(mobile,999999);
 			if (user != null) {
 				if (user.isActive() == true) {
 
 					// send OTP thru SMS
-					// otpNumber = otpService.sendOtp(mobile, message);
+					 otpNumber = otpService.sendOtp(mobile, message);
 
 					OtpValidation otpval = otpValidationDao.findBymobile(mobile);
 					if (otpval != null) {
