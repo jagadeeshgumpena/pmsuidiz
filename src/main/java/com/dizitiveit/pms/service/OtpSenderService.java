@@ -54,13 +54,13 @@ public class OtpSenderService {
 	public String sendOtp(String mobile, String msg) {
 
 		otpNumber = String.valueOf(OTP(6));
-		String message = "<#> Your PMS OTP Code is"+otpNumber+" "+msg;
+		String message = "Dear user,"+otpNumber+" is your One Time Password(OTP) to login to your account. Please do not share with Anyone.Team DIS";
 
 		otpsender.setServer(SMSSERVER);
 		otpsender.setPort(SMSPORT);
 		otpsender.setUsername(SMSUSERNAME);
 		otpsender.setPassword(SMSPASSWORD);
-		otpsender.setMessage(convertToUnicode(message).toString());
+		otpsender.setMessage(message);
 		otpsender.setDlr(SMSDLR);
 		otpsender.setType(SMSTYPE);
 		otpsender.setDestination(mobile);
