@@ -55,7 +55,6 @@ public class OtpSenderService {
 
 		otpNumber = String.valueOf(OTP(6));
 		String message = "Dear user,"+otpNumber+" is your One Time Password(OTP) to login to your account. Please do not share with Anyone.Team DIS";
-
 		otpsender.setServer(SMSSERVER);
 		otpsender.setPort(SMSPORT);
 		otpsender.setUsername(SMSUSERNAME);
@@ -67,7 +66,7 @@ public class OtpSenderService {
 		otpsender.setSource(SMSSOURCE);
 		otpsender.setEntityid(ENTITYID);
 		otpsender.setTempid(TEMPID);
-
+        System.out.println(message);
 		System.out.println("SMS DETAILS: " + otpsender.toString());
 		otpsender.submitMessage();
 		int i = Integer.parseInt(otpNumber);
