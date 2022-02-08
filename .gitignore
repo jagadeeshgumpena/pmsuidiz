@@ -7,12 +7,17 @@ build/
 
 ### STS ###
 .apt_generated
+.apt_generated_tests
 .classpath
 .factorypath
 .project
 .settings
 .springBeans
 .sts4-cache
+bin/
+APP_LOG_HOME_IS_UNDEFINED/
+!**/src/main/**/bin/
+!**/src/test/**/bin/
 
 ### IntelliJ IDEA ###
 .idea
