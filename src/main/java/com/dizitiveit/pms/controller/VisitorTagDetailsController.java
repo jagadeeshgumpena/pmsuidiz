@@ -783,23 +783,23 @@ public class VisitorTagDetailsController {
  			 visitorDetailsPojo.setPhoneNumber(visitor.getPhoneNumber());
  			 visitorDetailsPojo.setVehicleType(visitor.getVehicleType());
  			visitorDetailsPojo.setModel(visitor.getModel());
- 			 DateFormat dfExpectedIn = new SimpleDateFormat("yyyy=-MM-dd'T'HH:mm:ss");
+ 			 DateFormat dfExpectedIn = new SimpleDateFormat("yyyy-MM-dd'T'HH:mm:ss");
  				if(visitor.getExpectedInTime()!=null) {
  					visitorDetailsPojo.setExpectedInTime(dfExpectedIn.format(visitor.getExpectedInTime()));
  				}
- 				 DateFormat dfExpectedOut = new SimpleDateFormat("yyyy=-MM-dd'T'HH:mm:ss");
+ 				 DateFormat dfExpectedOut = new SimpleDateFormat("yyyy-MM-dd'T'HH:mm:ss");
  					if(visitor.getExpectedOutTime()!=null) {
  						visitorDetailsPojo.setExpectedOutTime(dfExpectedOut.format(visitor.getExpectedOutTime()));
  					}
- 					DateFormat dfIn = new SimpleDateFormat("yyyy=-MM-dd'T'HH:mm:ss");
+ 					DateFormat dfIn = new SimpleDateFormat("yyyy-MM-dd'T'HH:mm:ss");
  					if(visitor.getInTime()!=null) {
  						visitorDetailsPojo.setInTime(dfIn.format(visitor.getInTime()));
  					}
- 					DateFormat dfOut = new SimpleDateFormat("yyyy=-MM-dd'T'HH:mm:ss");
+ 					DateFormat dfOut = new SimpleDateFormat("yyyy-MM-dd'T'HH:mm:ss");
  					if(visitor.getOutTime()!=null) {
  						visitorDetailsPojo.setOutTime(dfIn.format(visitor.getOutTime()));
  					}
- 					DateFormat dfCreatedAt = new SimpleDateFormat("yyyy=-MM-dd'T'HH:mm:ss");
+ 					DateFormat dfCreatedAt = new SimpleDateFormat("yyyy-MM-dd'T'HH:mm:ss");
  					if(visitor.getCreatedAt()!=null) {
  						visitorDetailsPojo.setCreatedAt(dfCreatedAt.format(visitor.getCreatedAt()));
  					}
